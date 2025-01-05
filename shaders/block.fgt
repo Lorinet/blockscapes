@@ -1,0 +1,15 @@
+#version 400 core
+
+in vec2 pass_textureCoords;
+in float pass_shading;
+
+out vec4 out_Color;
+
+uniform sampler2D textureSampler;
+void main() {
+    vec4 color = texture(textureSampler, pass_textureCoords);
+    out_Color = color * pass_shading;
+    if(color.a == 0) {
+        discard;
+    }
+}
