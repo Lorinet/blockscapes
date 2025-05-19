@@ -1,0 +1,11 @@
+{
+    "id": -120,
+    "name": "Iron Ore",
+    "showInInventory": true,
+    "isTransparent": false,
+    "collider": [{"x":  -0.5, "y":  -0.5, "z":  -0.5}, {"x":  0.5, "y":  0.5, "z":  0.5}],
+    "atlasFaces": [9, 9, 9, 9, 9, 9],
+    "customModel": null,
+    "footstepsSound": "footsteps_stone",
+    "blockSound": "block_stone"
+}

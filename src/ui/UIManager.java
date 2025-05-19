@@ -3,7 +3,9 @@ package ui;
 import game.Font;
 import game.Texture;
 import game.Window;
-import mesh.GeometryManager;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import mesh.ModelManager;
 import mesh.Mesh;
 import org.joml.Vector2i;
 
@@ -27,12 +29,11 @@ public class UIManager {
 
     public static void init() {
         surfaceTexture = new Texture(Window.getWidth(), Window.getHeight());
-        GeometryManager.addTexture("ui", surfaceTexture);
-        model = GeometryManager.createModelUsingTexture("ui",
-                Arrays.asList(-1f, 1f, 0f, -1f, -1f, 0f, 1f, -1f, 0f, 1f, 1f, 0f),
-                Arrays.asList(0f, 0f, 0f, 1f, 1f, 1f, 1f, 0f),
-                List.of(),
-                Arrays.asList(0, 1, 2, 2, 3, 0));
+        ModelManager.addTexture("ui", surfaceTexture);
+        model = ModelManager.createFlatModelUsingTexture("ui",
+                new FloatArrayList(Arrays.asList(-1f, 1f, 0f, -1f, -1f, 0f, 1f, -1f, 0f, 1f, 1f, 0f)),
+                new FloatArrayList(Arrays.asList(0f, 0f, 0f, 1f, 1f, 1f, 1f, 0f)),
+                new IntArrayList(Arrays.asList(0, 1, 2, 2, 3, 0)));
 
         addWidget("crosshair", new CrossHair());
         addWidget("debugOverlay", new DebugOverlay());
@@ -50,7 +51,7 @@ public class UIManager {
         removeAllWidgets();
         model.destroy();
         model = null;
-        GeometryManager.removeTexture("ui");
+        ModelManager.removeTexture("ui");
         surfaceTexture = null;
         images.clear();
     }

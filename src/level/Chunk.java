@@ -1,7 +1,12 @@
 package level;
 
+import block.Block;
+import block.Blocks;
+import block.FaceVertex;
 import game.Collider;
 import game.StageManager;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import mesh.*;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import org.joml.Vector2f;
@@ -13,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Chunk {
@@ -27,10 +33,12 @@ public class Chunk {
     private Integer entity = null;
 
     private byte[][][] blocks;
-    private List<Float> vertexes;
-    private List<Float> textureCoords;
-    private List<Float> shading;
-    private List<Integer> indexes;
+    private FloatArrayList vertexes;
+    private FloatArrayList textureCoords;
+    private FloatArrayList normals;
+    private FloatArrayList shading;
+    private IntArrayList textureIndexes;
+    private IntArrayList indexes;
     private Thread thread;
 
     public Chunk(int chunkX, int chunkZ) {
@@ -63,10 +71,12 @@ public class Chunk {
         loaded = false;
         loading = true;
 
-        vertexes = new ArrayList<>();
-        textureCoords = new ArrayList<>();
-        shading = new ArrayList<>();
-        indexes = new ArrayList<>();
+        vertexes = new FloatArrayList(150000);
+        textureCoords = new FloatArrayList(10000);
+        normals = new FloatArrayList(150000);
+        shading = new FloatArrayList(60000);
+        textureIndexes = new IntArrayList(15000);
+        indexes = new IntArrayList(100000);
 
         for (int x = 0; x < SIZE_XZ; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
@@ -86,11 +96,11 @@ public class Chunk {
                             byte nbr = blocks[toCheck.x][toCheck.z][toCheck.y];
                             boolean xpant = Blocks.isTransparent(nbr);
                             if (xpant) {
-                                FaceVertex face = new FaceVertex(b.getFace(Block.adjacentFaces[i]));
+                                FaceVertex face = b.getFace(Block.adjacentFaces[i]);
                                 addQuad(pos, face, b.getIsTransparent() && b.getId() != nbr);
                             }
                         } catch (Exception e) {
-                            FaceVertex face = new FaceVertex(b.getFace(Block.adjacentFaces[i]));
+                            FaceVertex face = b.getFace(Block.adjacentFaces[i]);
                             addQuad(pos, face, false);
                         }
                     }
@@ -102,10 +112,21 @@ public class Chunk {
     }
 
     public void createModel() {
-        Mesh model = GeometryManager.createModel("stone", vertexes, textureCoords, shading, indexes);
+        /*System.out.println("------------------------------------------");
+        System.out.println("Vertices: " + vertexes.size());
+        System.out.println("Texture Coords: " + textureCoords.size());
+        System.out.println("Normals: " + normals.size());
+        System.out.println("Shading: " + shading.size());
+        System.out.println("Texture Indexes: " + textureIndexes.size());
+        System.out.println("Indexes: " + indexes.size());
+        System.out.println("------------------------------------------");*/
+        ModelData modelData = new ModelData(vertexes, textureCoords, normals, shading, textureIndexes, indexes, Arrays.asList(Blocks.blockMaterials));
+        Mesh model = ModelManager.createModelFromData(modelData);
         vertexes.clear();
         textureCoords.clear();
+        normals.clear();
         shading.clear();
+        textureIndexes.clear();
         indexes.clear();
         Vector3f chunkPosA = new Vector3f(chunkX * SIZE_XZ, 0, chunkZ * SIZE_XZ);
         Vector3f chunkPosB = new Vector3f(chunkX * SIZE_XZ + SIZE_XZ, SIZE_Y, chunkZ * SIZE_XZ + SIZE_XZ);
@@ -117,27 +138,36 @@ public class Chunk {
     }
 
     private void addQuad(Vector3i pos, FaceVertex face, boolean backFaceCullEvasion) {
-        face.offsetPos(pos);
-        face.offsetIndices(vertexes.size() / 3);
+        int indexOffset = vertexes.size() / 3;
         for (Vector3f vx : face.getVertexes()) {
-            vertexes.add(vx.x);
-            vertexes.add(vx.y);
-            vertexes.add(vx.z);
+            vertexes.add(vx.x + pos.x);
+            vertexes.add(vx.y + pos.y);
+            vertexes.add(vx.z + pos.z);
         }
 
         for (Vector2f tx : face.getTexCoords()) {
             textureCoords.add(tx.x);
             textureCoords.add(tx.y);
         }
+
+        for (Vector3f vn : face.getNormals()) {
+            normals.add(vn.x);
+            normals.add(vn.y);
+            normals.add(vn.z);
+        }
+
         for (float sx : face.getShading()) {
             shading.add(sx);
         }
+
+        textureIndexes.add(face.getTextureIndex());
+
         for (int ix : face.getIndices()) {
-            indexes.add(ix);
+            indexes.add(ix + indexOffset);
         }
         if (backFaceCullEvasion) {
             for (int i = face.getIndices().length - 1; i >= 0; i--) {
-                indexes.add(face.getIndices()[i]);
+                indexes.add(face.getIndices()[i] + indexOffset);
             }
         }
     }

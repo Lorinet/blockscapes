@@ -1,8 +1,8 @@
 package game;
 
 import level.LevelManager;
-import mesh.Block;
-import mesh.Blocks;
+import block.Block;
+import block.Blocks;
 import mesh.Mesh;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;

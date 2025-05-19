@@ -1,0 +1,16 @@
+{
+    "name": "ambient",
+    "volume": -5,
+    "sounds": [
+        "ambient1",
+        "ambient2",
+        "ambient3",
+        "ambient4",
+        "ambient5",
+        "ambient6",
+        "ambient7",
+        "ambient8",
+        "ambient9",
+        "ambient10"
+    ]
+}

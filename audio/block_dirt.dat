@@ -1,0 +1,10 @@
+{
+    "name": "block_dirt",
+    "volume": 2,
+    "sounds": [
+        "block_dirt1",
+        "block_dirt2",
+        "block_dirt3",
+        "block_dirt4"
+    ]
+}

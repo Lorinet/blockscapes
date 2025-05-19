@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL46;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
@@ -23,7 +24,7 @@ public abstract class Shader {
 
         String vertexCode;
         try {
-            vertexCode = Files.lines(Paths.get("shaders", name + ".vtx"))
+            vertexCode = Files.lines(Paths.get("shaders", name + ".vert.glsl"))
                     .collect(Collectors.joining("\n"));
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -31,19 +32,19 @@ public abstract class Shader {
 
         String fragmentCode;
         try {
-            fragmentCode = Files.lines(Paths.get("shaders", name + ".fgt"))
+            fragmentCode = Files.lines(Paths.get("shaders", name + ".frag.glsl"))
                     .collect(Collectors.joining("\n"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
+        System.out.println("Shader name: " + name);
         GL46.glShaderSource(vertexShader, vertexCode);
         GL46.glCompileShader(vertexShader);
-        //System.out.println(GL46.glGetShaderInfoLog(vertexShader));
-
+        System.out.println(GL46.glGetShaderInfoLog(vertexShader));
+        System.out.println("Frag");
         GL46.glShaderSource(fragmentShader, fragmentCode);
         GL46.glCompileShader(fragmentShader);
-        //System.out.println(GL46.glGetShaderInfoLog(fragmentShader));
+        System.out.println(GL46.glGetShaderInfoLog(fragmentShader));
 
         program = GL46.glCreateProgram();
         GL46.glAttachShader(program, vertexShader);
@@ -116,6 +117,14 @@ public abstract class Shader {
         matrixBuffer.put(xfl);
         matrixBuffer.flip();
         GL46.glUniformMatrix4fv(getUniformParameterLocation(name), false, matrixBuffer);
+    }
+
+    protected void loadFloatBuffer(String name, FloatBuffer buffer) {
+        GL46.glUniform1fv(getUniformParameterLocation(name), buffer);
+    }
+
+    protected void loadIntBuffer(String name, IntBuffer buffer) {
+        GL46.glUniform1iv(getUniformParameterLocation(name), buffer);
     }
 
 }

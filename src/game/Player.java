@@ -1,14 +1,13 @@
 package game;
 
+import block.Block;
+import block.Blocks;
 import level.LevelManager;
-import mesh.Block;
-import mesh.Blocks;
-import mesh.GeometryManager;
+import mesh.*;
 import org.joml.*;
 import ui.HotBar;
 import ui.UIManager;
 
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,7 +45,7 @@ public class Player extends Entity {
     }
 
     public Player(Vector3f position, boolean flying) {
-        super(GeometryManager.createModel("stone", playerVertexes, playerTextureCoords, playerShading, playerIndexes), position, new Vector3f(0, 0, 0), new Vector3f(1, 1, 1), new Collider(new Vector3f(-0.2f, 0f, -0.2f), new Vector3f(0.2f, -PLAYER_HEIGHT, 0.2f), true));
+        super(ModelManager.getModel("player"), position, new Vector3f(0, 0, 0), new Vector3f(1, 1, 1), new Collider(new Vector3f(-0.2f, 0f, -0.2f), new Vector3f(0.2f, -PLAYER_HEIGHT, 0.2f), true));
         fly(flying);
     }
 
@@ -57,19 +56,16 @@ public class Player extends Entity {
     }
 
     private void placeBlock() {
-        Raycast.Callback callback = new Raycast.Callback() {
-            @Override
-            public void raycastHit(Vector3i previous, Vector3i next) {
-                Byte bid = ((HotBar) UIManager.getWidget("hotbar")).getSelectedBlockID();
-                Vector3i top = getWorldPosition();
-                top.y += 2;
-                if (bid != null && !Objects.equals(next, getBlockStandingOn()) && !Objects.equals(next, top) && !Objects.equals(next, getWorldPosition())) {
-                    Block b = Blocks.getBlock(bid);
-                    if (b.getBlockSounds() != null) {
-                        b.getBlockSounds().playCycle(true);
-                    }
-                    LevelManager.setBlock(previous, b);
+        Raycast.Callback callback = (previous, next) -> {
+            Byte bid = ((HotBar) UIManager.getWidget("hotbar")).getSelectedBlockID();
+            Vector3i top = getWorldPosition();
+            top.y += 2;
+            if (bid != null && !Objects.equals(next, getBlockStandingOn()) && !Objects.equals(next, top) && !Objects.equals(next, getWorldPosition())) {
+                Block b = Blocks.getBlock(bid);
+                if (b.getBlockSounds() != null) {
+                    b.getBlockSounds().playCycle(true);
                 }
+                LevelManager.setBlock(previous, b);
             }
         };
 
@@ -99,6 +95,13 @@ public class Player extends Entity {
     }
 
     public void move(double deltaTime) {
+        if(Keyboard.getKeyUp(GLFW_KEY_T)) {
+            ModelData model = ModelLoader.loadModel("cactus");
+            Mesh mesh = ModelManager.createModelFromData(model);
+            Entity ent = new Entity(mesh, new Vector3f(0, 128, 0), new Vector3f(0, 0, 0), new Vector3f(1f, 1f, 1f), new Collider(new Vector3f(-0.5f, -0.5f, -0.5f), new Vector3f(0.5f, 0.5f, 0.5f), true));
+            StageManager.createEntity(ent);
+        }
+
         if (Keyboard.getKeyUp(GLFW_KEY_ESCAPE)) {
             UIManager.getWidget("pauseMenu").setVisible(true);
             Window.releaseCursor();

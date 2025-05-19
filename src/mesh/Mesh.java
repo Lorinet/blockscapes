@@ -1,13 +1,23 @@
 package mesh;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 public class Mesh {
     private final int vao;
-    private final int texture;
+    //private final int texture;
+    private FloatBuffer materialsFloatBuffer;
+    private IntBuffer materialsIntBuffer;
+    private int[] textures;
     private final int vertexCount;
 
-    public Mesh(int vao, int texture, int vertexCount) {
+    public Mesh(int vao, Material[] materials, int[] textures, int vertexCount) {
         this.vao = vao;
-        this.texture = texture;
+        if(materials != null) {
+            this.materialsFloatBuffer = ModelManager.createMaterialfUniformBuffer(materials);
+            this.materialsIntBuffer = ModelManager.createMaterialiUniformBuffer(materials);
+        }
+        this.textures = textures;
         this.vertexCount = vertexCount;
     }
 
@@ -15,8 +25,16 @@ public class Mesh {
         return vao;
     }
 
-    public int getTexture() {
-        return texture;
+    public IntBuffer getMaterialsIntBuffer() {
+        return materialsIntBuffer;
+    }
+
+    public FloatBuffer getMaterialsFloatBuffer() {
+        return materialsFloatBuffer;
+    }
+
+    public int[] getTextures() {
+        return textures;
     }
 
     public int getVertexCount() {
@@ -24,6 +42,6 @@ public class Mesh {
     }
 
     public void destroy() {
-        GeometryManager.unloadModel(vao);
+        ModelManager.unloadModel(vao);
     }
 }

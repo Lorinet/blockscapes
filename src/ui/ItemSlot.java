@@ -1,6 +1,6 @@
 package ui;
 
-import mesh.Block;
+import block.Block;
 import org.joml.Vector2i;
 
 public class ItemSlot extends Widget {

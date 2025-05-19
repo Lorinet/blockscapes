@@ -1,5 +1,7 @@
 package game;
 
+import audio.AudioController;
+import audio.AudioManager;
 import com.google.gson.Gson;
 import level.LevelManager;
 import mesh.Mesh;
@@ -16,8 +18,6 @@ import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 
 public class StageManager {
     private static final Map<Integer, Entity> entities = new HashMap<>();
-    private static final AudioController musicController = new AudioController(-5f, new String[]{"ambient1", "ambient2", "ambient3", "ambient4", "ambient5", "ambient6", "ambient7", "ambient8", "ambient9", "ambient10"});
-    private static final AudioController beginningMusicController = new AudioController(0.0f, new String[]{"beginning"});
     private static int uid = 0;
     private static double prevSecond = time();
     private static double prevTime = time();
@@ -86,7 +86,7 @@ public class StageManager {
     public static void play(String world) {
         if (!getInGame()) {
             try {
-                beginningMusicController.stop();
+                AudioManager.getSound("beginning").stop();
                 LevelManager.loadLevel(world);
                 LevelManager.loadSpawnChonk();
                 Player player = new Player();
@@ -121,8 +121,8 @@ public class StageManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        musicController.stop();
-        beginningMusicController.playCycle(true);
+        AudioManager.getSound("ambient").stop();
+        AudioManager.getSound("beginning").playCycle(true);
     }
 
     public static void unload() {
@@ -179,7 +179,7 @@ public class StageManager {
         musicThread = new Thread(() -> {
             int nextMusicDelay = ThreadLocalRandom.current().nextInt(40, 200);
             while (true) {
-                AudioController controller = getInGame() ? musicController : beginningMusicController;
+                AudioController controller = getInGame() ? AudioManager.getSound("ambient") : AudioManager.getSound("beginning");
                 controller.setCurrentClip(ThreadLocalRandom.current().nextInt(controller.getClips().length));
                 if (!controller.isPlaying()) {
                     controller.playCycle(true);

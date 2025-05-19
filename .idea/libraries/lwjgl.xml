@@ -1,0 +1,48 @@
+<component name="libraryTable">
+  <library name="lwjgl">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-stb-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lz4-java-1.8.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-glfw-natives-linux.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-assimp.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-opengl-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-openal-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/gson-2.8.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-stb-natives-linux.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-assimp-natives-macos-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-opengl-natives-linux-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-natives-linux.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-stb-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-openal-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-opengl-natives-linux.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-stb.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-natives-linux-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-assimp-natives-linux.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-assimp-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-stb-natives-macos-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/joml-1.10.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-opengl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-glfw-natives-macos-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-openal-natives-macos-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-openal.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-assimp-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-glfw.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-glfw-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-opengl-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-stb-natives-linux-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-glfw-natives-linux-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-openal-natives-linux-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-openal-natives-linux.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-assimp-natives-linux-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-glfw-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lz4-java-1.8.0-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-natives-macos-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lwjgl/lwjgl-opengl-natives-macos-arm64.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

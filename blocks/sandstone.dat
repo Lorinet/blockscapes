@@ -1,0 +1,11 @@
+{
+    "id": -112,
+    "name": "Sandstone",
+    "showInInventory": true,
+    "isTransparent": false,
+    "collider": [{"x":  -0.5, "y":  -0.5, "z":  -0.5}, {"x":  0.5, "y":  0.5, "z":  0.5}],
+    "atlasFaces": [17, 17, 17, 17, 17, 17],
+    "customModel": null,
+    "footstepsSound": "footsteps_stone",
+    "blockSound": "block_stone"
+}

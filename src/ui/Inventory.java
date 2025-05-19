@@ -3,8 +3,8 @@ package ui;
 import game.Keyboard;
 import game.Window;
 import level.LevelManager;
-import mesh.Block;
-import mesh.Blocks;
+import block.Block;
+import block.Blocks;
 import org.joml.Vector2i;
 
 import java.util.ArrayList;

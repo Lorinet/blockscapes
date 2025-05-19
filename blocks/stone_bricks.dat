@@ -1,0 +1,11 @@
+{
+    "id": -122,
+    "name": "Stone bricks",
+    "showInInventory": true,
+    "isTransparent": false,
+    "collider": [{"x":  -0.5, "y":  -0.5, "z":  -0.5}, {"x":  0.5, "y":  0.5, "z":  0.5}],
+    "atlasFaces": [7, 7, 7, 7, 7, 7],
+    "customModel": null,
+    "footstepsSound": "footsteps_stone",
+    "blockSound": "block_stone"
+}

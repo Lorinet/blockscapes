@@ -1,0 +1,14 @@
+{
+    "name": "footsteps_stone",
+    "volume": -10,
+    "sounds": [
+        "footsteps_stone1",
+        "footsteps_stone2",
+        "footsteps_stone3",
+        "footsteps_stone4",
+        "footsteps_stone5",
+        "footsteps_stone6",
+        "footsteps_stone7",
+        "footsteps_stone8"
+    ]
+}

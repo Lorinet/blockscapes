@@ -1,0 +1,10 @@
+{
+    "name": "footsteps_wood",
+    "volume": -10,
+    "sounds": [
+        "footsteps_wood1",
+        "footsteps_wood2",
+        "footsteps_wood3",
+        "footsteps_wood4"
+    ]
+}

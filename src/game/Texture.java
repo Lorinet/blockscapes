@@ -53,6 +53,11 @@ public class Texture {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    public void updatePixelsNextGen() {
+        buffer.put(pixels).flip();
+
+    }
+
     private void loadFile(String path) {
         int[] pixels = null;
         try {

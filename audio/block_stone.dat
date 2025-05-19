@@ -1,0 +1,10 @@
+{
+    "name": "block_stone",
+    "volume": 2,
+    "sounds": [
+        "block_stone1",
+        "block_stone2",
+        "block_stone3",
+        "block_stone4"
+    ]
+}

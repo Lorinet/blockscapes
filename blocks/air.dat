@@ -1,0 +1,11 @@
+{
+    "id": 0,
+    "name": "Air",
+    "showInInventory": false,
+    "isTransparent": true,
+    "collider": null,
+    "atlasFaces": [],
+    "customModel": null,
+    "footstepsSound": "footsteps_stone",
+    "blockSound": "block_stone"
+}

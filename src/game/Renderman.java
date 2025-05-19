@@ -21,15 +21,19 @@ public class Renderman {
     private static Matrix4f projectionMatrix;
     private static Matrix4f viewMatrix;
     private static Matrix4f projectionViewMatrix;
+    private static FrustumIntersection frustumIntersection = new FrustumIntersection();
     private static Player player;
     private static int renderedEntities = 0;
     private static int culledEntities = 0;
+
+    private static int uiTickMod = 0;
 
     public static void init() {
         entityShader = new EntityShader();
         entityShader.use();
         createMatrixes();
         entityShader.loadProjection(projectionMatrix);
+        entityShader.initTextureSampler();
         entityShader.disable();
         uiShader = new UIShader();
         GL46.glEnable(GL46.GL_DEPTH_TEST);
@@ -73,7 +77,11 @@ public class Renderman {
     }
 
     public static void renderUI() {
-        UIManager.draw();
+        if(uiTickMod >= 10) {
+            UIManager.draw();
+            uiTickMod = 0;
+        }
+        uiTickMod++;
         uiShader.use();
         GL46.glClear(GL_DEPTH_BUFFER_BIT);
         GL46.glEnable(GL46.GL_BLEND);
@@ -82,38 +90,52 @@ public class Renderman {
         GL46.glEnableVertexAttribArray(0);
         GL46.glEnableVertexAttribArray(1);
         GL46.glActiveTexture(GL46.GL_TEXTURE0);
-        GL46.glBindTexture(GL46.GL_TEXTURE_2D, UIManager.getModel().getTexture());
+        GL46.glBindTexture(GL46.GL_TEXTURE_2D, UIManager.getModel().getTextures()[0]);
         GL46.glDrawElements(GL46.GL_TRIANGLES, UIManager.getModel().getVertexCount(), GL46.GL_UNSIGNED_INT, 0);
         GL46.glDisableVertexAttribArray(1);
         GL46.glDisableVertexAttribArray(0);
         GL46.glBindVertexArray(0);
         GL46.glDisable(GL46.GL_BLEND);
         uiShader.disable();
+        int error = GL46.glGetError();
+        if (error != GL46.GL_NO_ERROR) {
+            System.err.println("UI OpenGL Error: " + error);
+        }
     }
 
     public static void renderEntity(Entity entity) {
-        FrustumIntersection frustumIntersection = new FrustumIntersection(projectionViewMatrix);
+        frustumIntersection.set(projectionViewMatrix);
         if (!frustumIntersection.testAab(entity.getHitbox().getStart(), entity.getHitbox().getEnd())) {
             culledEntities++;
             return;
         }
         renderedEntities++;
-
         Mesh model = entity.getModel();
         entityShader.use();
         Matrix4f transformation = MathUtils.createTransformationMatrix(entity.getPosition(), entity.getRotation(), entity.getScale());
         entityShader.loadTransformation(transformation);
+
+        entityShader.loadMaterials(entity.getModel().getMaterialsIntBuffer(), entity.getModel().getMaterialsFloatBuffer());
+        entityShader.loadTextures(entity.getModel().getTextures());
         GL46.glBindVertexArray(model.getVAO());
         GL46.glEnableVertexAttribArray(0);
         GL46.glEnableVertexAttribArray(1);
         GL46.glEnableVertexAttribArray(2);
-        GL46.glActiveTexture(GL46.GL_TEXTURE0);
-        GL46.glBindTexture(GL46.GL_TEXTURE_2D, model.getTexture());
+        GL46.glEnableVertexAttribArray(3);
+        GL46.glEnableVertexAttribArray(4);
         GL46.glDrawElements(GL46.GL_TRIANGLES, model.getVertexCount(), GL46.GL_UNSIGNED_INT, 0);
+
+        int error = GL46.glGetError();
+        if (error != GL46.GL_NO_ERROR) {
+            System.err.println("UI OpenGL Error: " + error);
+        }
+        GL46.glDisableVertexAttribArray(4);
+        GL46.glDisableVertexAttribArray(3);
         GL46.glDisableVertexAttribArray(2);
         GL46.glDisableVertexAttribArray(1);
         GL46.glDisableVertexAttribArray(0);
         GL46.glBindVertexArray(0);
+        entityShader.unloadTextures(entity.getModel().getTextures().length);
         entityShader.disable();
     }
 

@@ -1,7 +1,7 @@
 package level;
 
 import game.Noise;
-import mesh.Blocks;
+import block.Blocks;
 
 public class Generator {
     public static final float NOISE_SCALE = 0.01f;
