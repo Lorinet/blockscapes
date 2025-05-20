@@ -12,9 +12,9 @@ import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 public abstract class Shader {
-    private final int program;
-    private final int vertexShader;
-    private final int fragmentShader;
+    protected final int program;
+    protected final int vertexShader;
+    protected final int fragmentShader;
 
     private final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 

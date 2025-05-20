@@ -1,18 +1,34 @@
 package shader;
 
-import mesh.Material;
+import mesh.DirectionalLightArray;
+import mesh.MaterialArray;
 import mesh.ModelManager;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL46;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Collection;
 
 public class EntityShader extends Shader {
 
     public EntityShader() {
         super("block");
+        int uniformBlockIndex = GL46.glGetUniformBlockIndex(program, "MaterialBlock");
+
+        if (uniformBlockIndex == GL46.GL_INVALID_INDEX) {
+            throw new RuntimeException("Could not find uniform block MaterialBlock");
+        } else {
+            GL46.glUniformBlockBinding(program, uniformBlockIndex, 0);
+        }
+        uniformBlockIndex = GL46.glGetUniformBlockIndex(program, "DirectionalLightBlock");
+
+        if (uniformBlockIndex == GL46.GL_INVALID_INDEX) {
+            throw new RuntimeException("Could not find uniform block MaterialBlock");
+        } else {
+            GL46.glUniformBlockBinding(program, uniformBlockIndex, 1);
+        }
+
     }
 
     @Override
@@ -32,31 +48,31 @@ public class EntityShader extends Shader {
         loadMatrix("projection", matrix);
     }
 
-    public void initTextureSampler() {
-        loadIntBuffer("textures", ModelManager.createTextureSamplerUniformBuffer(16));
-    }
-
     public void loadView(Matrix4f matrix) {
         loadMatrix("viewMatrix", matrix);
     }
 
-    public void loadMaterials(IntBuffer materialsIntBuffer, FloatBuffer materialsFloatBuffer) {
-        loadIntBuffer("materialis", materialsIntBuffer);
-        loadFloatBuffer("materialfs", materialsFloatBuffer);
+    public void loadViewPos(Vector3f viewPos) {
+        loadVec3("viewPos", viewPos.x, viewPos.y, viewPos.z);
     }
 
-    public void loadTextures(int[] textures) {
-        for (int i = 0; i < textures.length; i++) {
-            GL46.glActiveTexture(GL46.GL_TEXTURE0 + i);
-            GL46.glBindTexture(GL46.GL_TEXTURE_2D, textures[i]);
-        }
+    public void loadMaterials(MaterialArray materialArray) {
+        GL46.glBindBufferBase(GL46.GL_UNIFORM_BUFFER, 0, materialArray.getUboId());
     }
 
-    public void unloadTextures(int textureCount) {
-        for (int i = 0; i < textureCount; i++) {
-            GL46.glActiveTexture(GL46.GL_TEXTURE0 + i);
-            GL46.glBindTexture(GL46.GL_TEXTURE_2D, 0);
-        }
+    public void loadDirectionalLights(DirectionalLightArray directionalLightArray) {
+        GL46.glBindBufferBase(GL46.GL_UNIFORM_BUFFER, 1, directionalLightArray.getUboId());
+
+    }
+
+    public void loadTextures() {
         GL46.glActiveTexture(GL46.GL_TEXTURE0);
+        GL46.glBindTexture(GL46.GL_TEXTURE_2D_ARRAY, ModelManager.getTextureArray().getTextureArrayID());
+        loadInt("textures", 0);
+    }
+
+    public void unloadTextures() {
+        GL46.glActiveTexture(GL46.GL_TEXTURE0);
+        GL46.glBindTexture(GL46.GL_TEXTURE_2D_ARRAY, 0);
     }
 }

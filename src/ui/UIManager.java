@@ -1,7 +1,7 @@
 package ui;
 
 import game.Font;
-import game.Texture;
+import mesh.Texture;
 import game.Window;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -29,8 +29,8 @@ public class UIManager {
 
     public static void init() {
         surfaceTexture = new Texture(Window.getWidth(), Window.getHeight());
-        ModelManager.addTexture("ui", surfaceTexture);
-        model = ModelManager.createFlatModelUsingTexture("ui",
+        ModelManager.addStaticTexture("ui", surfaceTexture);
+        model = ModelManager.createFlatModelUsingStaticTexture("ui",
                 new FloatArrayList(Arrays.asList(-1f, 1f, 0f, -1f, -1f, 0f, 1f, -1f, 0f, 1f, 1f, 0f)),
                 new FloatArrayList(Arrays.asList(0f, 0f, 0f, 1f, 1f, 1f, 1f, 0f)),
                 new IntArrayList(Arrays.asList(0, 1, 2, 2, 3, 0)));
@@ -51,7 +51,7 @@ public class UIManager {
         removeAllWidgets();
         model.destroy();
         model = null;
-        ModelManager.removeTexture("ui");
+        ModelManager.removeStaticTexture("ui");
         surfaceTexture = null;
         images.clear();
     }

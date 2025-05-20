@@ -1,11 +1,11 @@
 package mesh;
 
 import com.google.gson.Gson;
-import game.Texture;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL46;
+import ui.Text;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -20,11 +20,13 @@ import java.util.Map;
 
 public class ModelManager {
     private static final Map<Integer, ArrayList<Integer>> vertexArrayObjects = new HashMap<>();
-    private static final Map<String, Texture> textures = new HashMap<>();
+    private static final Map<String, Texture> staticTextures = new HashMap<>();
     private static final Map<String, Mesh> models = new HashMap<>();
+    private static TextureArray textureArray;
     private static int textureCollectionID = 0;
 
     public static void init() {
+        textureArray = new TextureArray(4096, 4096, 128);
         File[] dataFiles = new File("models").listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -43,8 +45,8 @@ public class ModelManager {
                 throw new RuntimeException(e);
             }
             ModelDataFile modelData = jsp.fromJson(json, ModelDataFile.class);
-            ModelData model = ModelLoader.loadModel(modelData.getModelFile());
-            models.put(modelData.getName(), createModelFromData(model));
+            ModelData model = ModelLoader.loadModel(modelData.getName(), modelData.getModelFile());
+            models.put(modelData.getName(), createModelFromData(model, true));
         }
     }
 
@@ -57,30 +59,25 @@ public class ModelManager {
         }
     }
 
-    /*
-        public static Mesh createModel(Collection<Material>, FastFloatBuffer vertexes, FastFloatBuffer textureCoords, FastFloatBuffer shading, Collection<Integer> indexes) {
-            loadTexture(texture);
-            return createModelUsingTexture(texture, vertexes, textureCoords, shading, indexes);
-        }
-    */
-    public static Mesh createFlatModelUsingTexture(String textureName, FloatArrayList vertexes, FloatArrayList textureCoords, IntArrayList indexes) {
+    public static Mesh createFlatModelUsingStaticTexture(String textureName, FloatArrayList vertexes, FloatArrayList textureCoords, IntArrayList indexes) {
         int vao = createVAO();
         loadFloatDataIntoVBO(vao, 0, 3, vertexes);
         loadFloatDataIntoVBO(vao, 1, 2, textureCoords);
         loadIndexesVBO(vao, indexes);
         GL46.glBindVertexArray(0);
-        return new Mesh(vao, null, new int[]{getTexture(textureName).getTextureID()}, indexes.size());
+        return new Mesh(vao, null, new int[]{getStaticTexture(textureName).getTextureID()}, indexes.size(), null);
     }
 
-    public static Mesh createModelFromData(ModelData meshData) {
+    public static Mesh createModelFromData(ModelData meshData, boolean saveModelData) {
         ArrayList<Integer> textureIDs = new ArrayList<>();
         int texCunt = 0;
         for (Material mat : meshData.getMaterials()) {
             if (mat != null && mat.getDiffuseTexturePath() != null) {
-                int diffuseID = loadTexture(mat.getDiffuseTexturePath());
-                mat.setDiffuseTextureIndex(texCunt);
+                TextureArray.BufferedTexture diffuse = getTextureArray().getOrLoadTexture(mat.getDiffuseTexturePath());
+                mat.setDiffuseTextureIndex(diffuse.getTextureID());
+                mat.setDiffuseTextureSize(diffuse.getSize());
                 texCunt += 1;
-                textureIDs.add(diffuseID);
+                textureIDs.add(diffuse.getTextureID());
             }
         }
         int vao = createVAO();
@@ -91,27 +88,33 @@ public class ModelManager {
         loadIntDataIntoVBO(vao, 4, 1, meshData.getMaterialIndices());
         loadIndexesVBO(vao, meshData.getIndices());
         GL46.glBindVertexArray(0);
-        return new Mesh(vao, meshData.getMaterials().toArray(new Material[0]), textureIDs.stream().mapToInt(Integer::intValue).toArray(), meshData.getIndices().size());
-    }
-
-    private static int loadTexture(String name) {
-        if (!textures.containsKey(name)) {
-            textures.put(name, new Texture(Paths.get("textures", name).toString()));
+        ModelData data = null;
+        if (saveModelData) {
+            data = meshData;
         }
-        return getTexture(name).getTextureID();
+        return new Mesh(vao, meshData.getMaterials().toArray(new Material[0]), textureIDs.stream().mapToInt(Integer::intValue).toArray(), meshData.getIndices().size(), data);
     }
 
-    public static void addTexture(String name, Texture texture) {
-        textures.put(name, texture);
+    public static TextureArray getTextureArray() {
+        return textureArray;
     }
 
-    public static void removeTexture(String name) {
-        getTexture(name).destroy();
-        textures.remove(name);
+    public static void addStaticTexture(String name, Texture texture) {
+        staticTextures.put(name, texture);
     }
 
-    public static Texture getTexture(String name) {
-        return textures.get(name);
+    public static void loadStaticTexture(String name) {
+        Texture tex = new Texture(Paths.get("textures", name).toString());
+        staticTextures.put(name, tex);
+    }
+
+    public static void removeStaticTexture(String name) {
+        getStaticTexture(name).destroy();
+        staticTextures.remove(name);
+    }
+
+    public static Texture getStaticTexture(String name) {
+        return staticTextures.get(name);
     }
 
     private static int createVAO() {
@@ -195,7 +198,7 @@ public class ModelManager {
     }
 
     public static IntBuffer createMaterialiUniformBuffer(Material[] materials) {
-        int intsPerMaterial = 1;
+        int intsPerMaterial = 1 + 2;
         int totalFloats = materials.length * intsPerMaterial;
 
         IntBuffer buffer = BufferUtils.createIntBuffer(totalFloats);
@@ -203,6 +206,8 @@ public class ModelManager {
         for (Material mat : materials) {
             /**/
             buffer.put(mat.getDiffuseTextureIndex());
+            buffer.put(mat.getDiffuseTextureSize().x);
+            buffer.put(mat.getDiffuseTextureSize().y);
         }
 
         buffer.flip();
@@ -235,15 +240,6 @@ public class ModelManager {
             buffer.put(mat.getShininess());
         }
 
-        buffer.flip();
-        return buffer;
-    }
-
-    public static IntBuffer createTextureSamplerUniformBuffer(int numTexes) {
-        IntBuffer buffer = BufferUtils.createIntBuffer(numTexes);
-        for (int i = 0; i < numTexes; i++) {
-            buffer.put(i);
-        }
         buffer.flip();
         return buffer;
     }

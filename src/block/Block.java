@@ -2,6 +2,10 @@ package block;
 
 import audio.AudioController;
 import game.Collider;
+import mesh.Material;
+import mesh.ModelData;
+import mesh.ModelLoader;
+import mesh.ModelManager;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -22,13 +26,15 @@ public class Block {
     private final byte id;
     private final String name;
     private final Map<Vector3i, FaceVertex> faces;
+    private final String customModelName;
+    private final int materialIndex;
     private final Collider collider;
     private final boolean showInInventory;
     private final boolean isTransparent;
     private final AudioController footstepsSounds;
     private final AudioController blockSounds;
 
-    public Block(int id, String name, boolean showInInventory, boolean isTransparent, Map<Vector3i, FaceVertex> faces, Collider collider, AudioController footstepsSounds, AudioController blockSounds) {
+    public Block(int id, String name, boolean showInInventory, boolean isTransparent, Map<Vector3i, FaceVertex> faces, String customModelName, int materialIndex, Collider collider, AudioController footstepsSounds, AudioController blockSounds) {
         this.id = (byte)id;
         this.name = name;
         this.showInInventory = showInInventory;
@@ -37,6 +43,8 @@ public class Block {
         this.collider = collider;
         this.footstepsSounds = footstepsSounds;
         this.blockSounds = blockSounds;
+        this.customModelName = customModelName;
+        this.materialIndex = materialIndex;
     }
 
     public byte getId() {
@@ -57,6 +65,18 @@ public class Block {
 
     public FaceVertex getFace(Vector3i face) {
         return faces.get(face);
+    }
+
+    public Material getMaterial() {
+        return Blocks.blockMaterials.get(materialIndex);
+    }
+
+    public int getMaterialIndex() {
+        return materialIndex;
+    }
+
+    public ModelData getCustomModel() {
+        return ModelManager.getModel(customModelName).getModelData();
     }
 
     public Collider getCollider() {

@@ -15,8 +15,8 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class ModelLoader {
-    public static ModelData loadModel(String modelFile) {
-        try (BufferedReader objReader = new BufferedReader(new FileReader(Paths.get("models", "files", modelFile).toString()))) {
+    public static ModelData loadModel(String modelName, String modelFile) {
+        try (BufferedReader objReader = new BufferedReader(new FileReader(Paths.get("models", "files", modelName, modelFile).toString()))) {
             ArrayList<Vector3f> tempVex = new ArrayList<>();
             ArrayList<Vector2f> tempTex = new ArrayList<>();
             ArrayList<Vector3f> tempNox = new ArrayList<>();
@@ -73,7 +73,7 @@ public class ModelLoader {
                         break;
                     case "mtllib":
                         String mtlPath = split[1];
-                        materials.putAll(loadMaterials(Paths.get("models", "files", mtlPath).toString()));
+                        materials.putAll(loadMaterials(Paths.get("models", "files", modelName, mtlPath).toString()));
                         break;
                     case "usemtl":
                         currentMaterial = split[1];

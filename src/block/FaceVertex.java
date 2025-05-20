@@ -83,10 +83,6 @@ public class FaceVertex {
         return normals;
     }
 
-    public int getTextureIndex() {
-        return textureIndex;
-    }
-
     public float[] getShading() {
         return shading;
     }

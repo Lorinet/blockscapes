@@ -14,6 +14,7 @@ public class Main {
         Window.create();
         Blocks.init();
         Renderman.init();
+        Sky.init();
         ModelManager.init();
         UIManager.init();
         StageManager.mainLoop();
@@ -23,6 +24,7 @@ public class Main {
         AudioManager.unload();
         UIManager.unload();
         Renderman.unload();
+        Sky.unload();
         Blocks.unload();
         StageManager.unload();
         ModelManager.unload();

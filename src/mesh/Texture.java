@@ -1,4 +1,4 @@
-package game;
+package mesh;
 
 import org.lwjgl.opengl.GL46;
 

@@ -6,6 +6,7 @@
     "collider": [{"x":  -0.5, "y":  -0.5, "z":  -0.5}, {"x":  0.5, "y":  0.5, "z":  0.5}],
     "atlasFaces": [16, 16, 16, 16, 16, 16],
     "customModel": null,
+    "customMaterial": null,
     "footstepsSound": "footsteps_grass",
     "blockSound": "block_dirt"
 }

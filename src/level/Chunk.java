@@ -17,9 +17,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class Chunk {
     public static final int SIZE_XZ = 16;
@@ -37,7 +34,7 @@ public class Chunk {
     private FloatArrayList textureCoords;
     private FloatArrayList normals;
     private FloatArrayList shading;
-    private IntArrayList textureIndexes;
+    private IntArrayList materialIndexes;
     private IntArrayList indexes;
     private Thread thread;
 
@@ -75,7 +72,7 @@ public class Chunk {
         textureCoords = new FloatArrayList(10000);
         normals = new FloatArrayList(150000);
         shading = new FloatArrayList(60000);
-        textureIndexes = new IntArrayList(15000);
+        materialIndexes = new IntArrayList(60000);
         indexes = new IntArrayList(100000);
 
         for (int x = 0; x < SIZE_XZ; x++) {
@@ -97,11 +94,11 @@ public class Chunk {
                             boolean xpant = Blocks.isTransparent(nbr);
                             if (xpant) {
                                 FaceVertex face = b.getFace(Block.adjacentFaces[i]);
-                                addQuad(pos, face, b.getIsTransparent() && b.getId() != nbr);
+                                addQuad(pos, face, b.getMaterialIndex(), b.getIsTransparent() && b.getId() != nbr);
                             }
                         } catch (Exception e) {
                             FaceVertex face = b.getFace(Block.adjacentFaces[i]);
-                            addQuad(pos, face, false);
+                            addQuad(pos, face, b.getMaterialIndex(), false);
                         }
                     }
                 }
@@ -120,13 +117,13 @@ public class Chunk {
         System.out.println("Texture Indexes: " + textureIndexes.size());
         System.out.println("Indexes: " + indexes.size());
         System.out.println("------------------------------------------");*/
-        ModelData modelData = new ModelData(vertexes, textureCoords, normals, shading, textureIndexes, indexes, Arrays.asList(Blocks.blockMaterials));
-        Mesh model = ModelManager.createModelFromData(modelData);
+        ModelData modelData = new ModelData(vertexes, textureCoords, normals, shading, materialIndexes, indexes, Blocks.blockMaterials);
+        Mesh model = ModelManager.createModelFromData(modelData, false);
         vertexes.clear();
         textureCoords.clear();
         normals.clear();
         shading.clear();
-        textureIndexes.clear();
+        materialIndexes.clear();
         indexes.clear();
         Vector3f chunkPosA = new Vector3f(chunkX * SIZE_XZ, 0, chunkZ * SIZE_XZ);
         Vector3f chunkPosB = new Vector3f(chunkX * SIZE_XZ + SIZE_XZ, SIZE_Y, chunkZ * SIZE_XZ + SIZE_XZ);
@@ -137,7 +134,7 @@ public class Chunk {
         }
     }
 
-    private void addQuad(Vector3i pos, FaceVertex face, boolean backFaceCullEvasion) {
+    private void addQuad(Vector3i pos, FaceVertex face, int materialIndex, boolean backFaceCullEvasion) {
         int indexOffset = vertexes.size() / 3;
         for (Vector3f vx : face.getVertexes()) {
             vertexes.add(vx.x + pos.x);
@@ -160,7 +157,10 @@ public class Chunk {
             shading.add(sx);
         }
 
-        textureIndexes.add(face.getTextureIndex());
+        for(int i = 0; i < 4; i++) {
+            materialIndexes.add(materialIndex);
+        }
+
 
         for (int ix : face.getIndices()) {
             indexes.add(ix + indexOffset);

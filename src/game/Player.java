@@ -45,7 +45,7 @@ public class Player extends Entity {
     }
 
     public Player(Vector3f position, boolean flying) {
-        super(ModelManager.getModel("player"), position, new Vector3f(0, 0, 0), new Vector3f(1, 1, 1), new Collider(new Vector3f(-0.2f, 0f, -0.2f), new Vector3f(0.2f, -PLAYER_HEIGHT, 0.2f), true));
+        super(ModelManager.getModel("cactus"), position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Collider(new Vector3f(-0.2f, 0f, -0.2f), new Vector3f(0.2f, -PLAYER_HEIGHT, 0.2f), true));
         fly(flying);
     }
 
@@ -96,8 +96,7 @@ public class Player extends Entity {
 
     public void move(double deltaTime) {
         if(Keyboard.getKeyUp(GLFW_KEY_T)) {
-            ModelData model = ModelLoader.loadModel("cactus");
-            Mesh mesh = ModelManager.createModelFromData(model);
+            Mesh mesh = ModelManager.getModel("cactus");
             Entity ent = new Entity(mesh, new Vector3f(0, 128, 0), new Vector3f(0, 0, 0), new Vector3f(1f, 1f, 1f), new Collider(new Vector3f(-0.5f, -0.5f, -0.5f), new Vector3f(0.5f, 0.5f, 0.5f), true));
             StageManager.createEntity(ent);
         }

@@ -12,7 +12,7 @@ import java.util.*;
 public class Blocks {
     public static final byte ID_AIR = 0;
     public static final String TEXTURE_ATLAS_NAME = "stone.png";
-    public static Material[] blockMaterials = new Material[]{new Material(TEXTURE_ATLAS_NAME, TEXTURE_ATLAS_NAME),};
+    public static ArrayList<Material> blockMaterials = new ArrayList<>(List.of(new Material[]{new Material(TEXTURE_ATLAS_NAME, TEXTURE_ATLAS_NAME),}));
 
     private static ArrayList<Block> blockTypes;
 

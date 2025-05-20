@@ -1,115 +1,88 @@
 #version 400 core
+#define MAX_MATERIALS 16
+#define MAX_DIRECTIONAL_LIGHTS 2
 
 in vec2 pass_textureCoords;
 in vec3 pass_normals;
+in vec3 pass_position;
 in float pass_shading;
 flat in int pass_materialIndex;
 
-struct Materiali {
-    int diffuseTextureID;
-};
-
-struct Materialf {
-    vec3 ambientColor;
-    vec3 diffuseColor;
-    vec3 specularColor;
-    float shininess;
-};
-
 struct Material {
-    Materiali mati;
-    Materialf matf;
+    vec4 ambientColor;
+    vec4 diffuseColor;
+    vec4 specularColor;
+    vec4 emissiveColor;
+    float shininess;
+    int diffuseTextureID;
+    int diffuseTextureWidth;
+    int diffuseTextureHeight;
 };
 
-uniform Materiali materialis[16];
-uniform Materialf materialfs[16];
-uniform sampler2D textures[16];
+struct DirectionalLight {
+    vec4 color;
+    vec4 direction;
+};
+
+layout(std140) uniform MaterialBlock {
+    Material materials[16];
+};
+
+layout(std140) uniform DirectionalLightBlock {
+    DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+};
+
+uniform sampler2DArray textures;
+uniform vec3 viewPos;
 
 out vec4 out_Color;
 
-Material selectMaterial() {
-    Materiali mati;
-    Materialf matf;
-    switch (pass_materialIndex) {
-        case 0:
-        mati = materialis[0];
-        matf = materialfs[0];
-        break;
-        case 1:
-        mati = materialis[1];
-        matf = materialfs[1];
-        break;
-        case 2:
-        mati = materialis[2];
-        matf = materialfs[2];
-        break;
-        case 3:
-        mati = materialis[3];
-        matf = materialfs[3];
-        break;
-        case 4:
-        mati = materialis[4];
-        matf = materialfs[4];
-        break;
-        case 5:
-        mati = materialis[5];
-        matf = materialfs[5];
-        break;
-        case 6:
-        mati = materialis[6];
-        matf = materialfs[6];
-        break;
-        case 7:
-        mati = materialis[7];
-        matf = materialfs[7];
-        break;
-        case 8:
-        mati = materialis[8];
-        matf = materialfs[8];
-        break;
-        case 9:
-        mati = materialis[9];
-        matf = materialfs[9];
-        break;
-        case 10:
-        mati = materialis[10];
-        matf = materialfs[10];
-        break;
-        case 11:
-        mati = materialis[11];
-        matf = materialfs[11];
-        break;
-        case 12:
-        mati = materialis[12];
-        matf = materialfs[12];
-        break;
-        case 13:
-        mati = materialis[13];
-        matf = materialfs[13];
-        break;
-        case 14:
-        mati = materialis[14];
-        matf = materialfs[14];
-        break;
-        case 15:
-        mati = materialis[15];
-        matf = materialfs[15];
-        break;
-    }
-    Material mat;
-    mat.mati = mati;
-    mat.matf = matf;
-    return mat;
-}
 
 void main() {
-    //Material mat = selectMaterial();
-    vec4 diffuseColor = vec4(1.0, 0.0, 0.0, 1.0);
-    //if (mat.mati.diffuseTextureID == 0) {
-        diffuseColor = texture(textures[0], pass_textureCoords);
-    //}
-    out_Color = diffuseColor * pass_shading;
-    if (diffuseColor.a == 0) {
+    Material material = materials[pass_materialIndex];
+    float texCoord_x = pass_textureCoords.x * material.diffuseTextureWidth / 4096;
+    float texCoord_y = pass_textureCoords.y * material.diffuseTextureHeight / 4096;
+
+    vec3 norm = normalize(pass_normals);
+    vec3 viewDir = normalize(viewPos - pass_position);
+
+    vec3 emissive = material.emissiveColor.rgb;
+    vec4 textureColor = texture(textures, vec3(vec2(texCoord_x, texCoord_y), material.diffuseTextureID));
+
+
+    vec3 diffuseBase = textureColor.rgb * material.diffuseColor.rgb;
+    vec3 ambientBase = textureColor.rgb * material.ambientColor.rgb;
+
+    vec3 diffuse = vec3(0);
+    vec3 ambient = ambientBase;
+
+    vec3 specular = vec3(0);
+    bool generateSpicules = any(greaterThan(material.specularColor.rgb, vec3(0.0)));
+
+    DirectionalLight dirLight;
+    dirLight.direction = vec4(0.0, 1.0, 0.0, 1.0);
+    dirLight.color = vec4(1.0, 1.0, 1.0, 1.0);
+
+    for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++) {
+        DirectionalLight light = directionalLights[i];
+        //DirectionalLight light = dirLight;
+        float lightNormal = max(dot(norm, light.direction.xyz), 0.0);
+        diffuse += diffuseBase * lightNormal * light.color.rgb;
+        //ambient = ambient * light.color.rgb;
+
+        if (generateSpicules) {
+            vec3 halfwayDir = normalize(light.direction.xyz + viewDir);
+            float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess / 2);
+            specular += light.color.rgb * material.specularColor.rgb * spec;
+        }
+    }
+
+
+    vec3 result = ambient + diffuse + specular + emissive;
+
+    out_Color = vec4(result/* * pass_shading*/, 1.0);
+    //out_Color = vec4(norm, 1.0);
+    if (textureColor.a < 0.05) {
         discard;
     }
 }

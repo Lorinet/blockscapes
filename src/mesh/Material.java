@@ -1,16 +1,17 @@
 package mesh;
 
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 import java.util.Objects;
 
 public class Material {
     private String name;
-    private Vector3f ambientColor = new Vector3f(0.1f, 0.1f, 0.1f);
-    private Vector3f diffuseColor = new Vector3f(1.0f, 1.0f, 1.0f);
+    private Vector3f ambientColor = new Vector3f(0.3f, 0.3f, 0.3f);
+    private Vector3f diffuseColor = new Vector3f(0.7f, 0.7f, 0.7f);
     private Vector3f specularColor = new Vector3f(0.0f, 0.0f, 0.0f);
     private Vector3f emissiveColor = new Vector3f(0.0f, 0.0f, 0.0f);
-    private float shininess = 10.0f;
+    private float shininess = 0.0f;
     private float dissolve = 1.0f;
     private float opticalDensity = 1.0f;
     private int illuminationModel = 2;
@@ -23,6 +24,7 @@ public class Material {
     private String dissolveTexturePath;
 
     private int diffuseTextureIndex = -1;
+    private Vector2i diffuseTextureSize = new Vector2i(0, 0);
 
     public Material(String name) {
         this.name = name;
@@ -31,6 +33,26 @@ public class Material {
     public Material(String name, String diffuseTexturePath) {
         this.name = name;
         this.diffuseTexturePath = diffuseTexturePath;
+    }
+
+    public Material(Material other) {
+        this.name = other.name;
+        this.ambientColor = new Vector3f(other.ambientColor);
+        this.diffuseColor = new Vector3f(other.diffuseColor);
+        this.specularColor = new Vector3f(other.specularColor);
+        this.emissiveColor = new Vector3f(other.emissiveColor);
+        this.shininess = other.shininess;
+        this.dissolve = other.dissolve;
+        this.opticalDensity = other.opticalDensity;
+        this.illuminationModel = other.illuminationModel;
+        this.ambientTexturePath = other.ambientTexturePath;
+        this.diffuseTexturePath = other.diffuseTexturePath;
+        this.specularTexturePath = other.specularTexturePath;
+        this.emissiveTexturePath = other.emissiveTexturePath;
+        this.normalMapPath = other.normalMapPath;
+        this.dissolveTexturePath = other.dissolveTexturePath;
+        this.diffuseTextureIndex = other.diffuseTextureIndex;
+        this.diffuseTextureSize = new Vector2i(other.diffuseTextureSize);
     }
 
     public String getName() {
@@ -155,6 +177,14 @@ public class Material {
 
     public int getDiffuseTextureIndex() {
         return diffuseTextureIndex;
+    }
+
+    public void setDiffuseTextureSize(Vector2i diffuseTextureSize) {
+        this.diffuseTextureSize = new Vector2i(diffuseTextureSize);
+    }
+
+    public Vector2i getDiffuseTextureSize() {
+        return diffuseTextureSize;
     }
 
     @Override

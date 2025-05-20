@@ -1,0 +1,4 @@
+newmtl gold_block
+Ns 140.0
+Ks 0.8 0.8 0.4
+Kd 0.5 0.5 0.5

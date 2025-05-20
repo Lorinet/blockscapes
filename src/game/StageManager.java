@@ -17,11 +17,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 
 public class StageManager {
+    public static final float TIME_SPEED = 1.0f;
+
     private static final Map<Integer, Entity> entities = new HashMap<>();
     private static int uid = 0;
     private static double prevSecond = time();
     private static double prevTime = time();
     private static double fps = 0;
+    private static float gameTime = 12;
     private static Thread musicThread;
     private static Integer playerID;
     private static boolean stopRequested = false;
@@ -143,6 +146,13 @@ public class StageManager {
             double frameTime = currentTime - prevTime;
             prevTime = currentTime;
 
+            if(getInGame()) {
+                gameTime += frameTime * TIME_SPEED;
+                if (gameTime >= 24.0f) {
+                    gameTime -= 24.0f;
+                }
+            }
+
             if (Window.getMouseLocked()) {
                 updateEntities(frameTime);
             }
@@ -169,6 +179,10 @@ public class StageManager {
         entities.get(id).destroy();
         entities.remove(id);
         uid = id;
+    }
+
+    public static float getGameTime() {
+        return gameTime;
     }
 
     private static double time() {
