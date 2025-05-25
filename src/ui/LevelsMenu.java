@@ -30,7 +30,7 @@ public class LevelsMenu extends Widget {
         Vector2i pos = new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 120);
 
         for (String s : LevelManager.getLevels()) {
-            what.add(Widget.centered(new Button(new Vector2i(pos), new Vector2i(200, 25), s, () -> {
+            what.add(Widget.centered(new Button(new Vector2i(pos), new Vector2i(200, 25), s, (me) -> {
                 setVisible(false);
                 StageManager.play(s);
             }), true, false));
@@ -38,13 +38,13 @@ public class LevelsMenu extends Widget {
         }
         pos.y += 30;
 
-        what.add(Widget.centered(new Button(new Vector2i(pos), new Vector2i(200, 25), "Create new world", () -> {
+        what.add(Widget.centered(new Button(new Vector2i(pos), new Vector2i(200, 25), "Create new world", (me) -> {
             setVisible(false);
             Keyboard.cancelAll();
             UIManager.getWidget("createWorldMenu").setVisible(true);
         }), true, false));
         pos.y += 30;
-        what.add(Widget.centered(new Button(new Vector2i(pos), new Vector2i(200, 25), "Back to menu", () -> {
+        what.add(Widget.centered(new Button(new Vector2i(pos), new Vector2i(200, 25), "Back to menu", (me) -> {
             setVisible(false);
             UIManager.getWidget("mainMenu").setVisible(true);
         }), true, false));

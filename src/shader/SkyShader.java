@@ -5,7 +5,7 @@ import org.joml.Vector3f;
 
 public class SkyShader extends Shader {
     public SkyShader() {
-        super("sky");
+        super("sky", new String[] {"transformation", "projection", "viewMatrix"}, false);
     }
 
     @Override
@@ -24,9 +24,5 @@ public class SkyShader extends Shader {
 
     public void loadView(Matrix4f matrix) {
         loadMatrix("viewMatrix", matrix);
-    }
-
-    public void loadCelestialColor(Vector3f celestialColor) {
-        loadVec3("celestialColor", celestialColor.x, celestialColor.y, celestialColor.z);
     }
 }

@@ -1,10 +1,11 @@
 package level;
 
-import com.google.gson.*;
-import game.Renderman;
-import game.StageManager;
 import block.Block;
 import block.Blocks;
+import com.google.gson.Gson;
+import game.Entity;
+import game.Renderman;
+import game.StageManager;
 import net.jpountz.lz4.LZ4BlockOutputStream;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
@@ -18,8 +19,10 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class LevelManager {
-    public static Map<Vector2i, Chunk> chunks = new HashMap<>();
-    public static Deque<Vector2i> loadedChunks = new LinkedList<>();
+    public static final Object chunksEntitiesLock = new Object();
+    private static Map<Vector2i, Chunk> chunks = new HashMap<>();
+    private static Deque<Vector2i> loadedChunks = new LinkedList<>();
+    private static Map<Vector2i, List<EntityStateData>> chunksEntities = new HashMap<>();
 
     private static String levelName;
     private static File levelFile;
@@ -29,6 +32,14 @@ public class LevelManager {
         loadChunk(0, 0);
         while (!chunks.get(new Vector2i(0, 0)).getLoaded()) {
         }
+    }
+
+    public static Collection<Vector2i> getLoadedChunks() {
+        return loadedChunks;
+    }
+
+    public static Map<Vector2i, Chunk> getChunks() {
+        return chunks;
     }
 
     public static String[] getLevels() {
@@ -50,6 +61,18 @@ public class LevelManager {
         }
         String json = Files.readString(levelFile.toPath());
         level = jsp.fromJson(json, Level.class);
+        StageManager.setGameTime(level.getTime());
+
+        synchronized (chunksEntitiesLock) {
+            chunksEntities = new HashMap<>();
+            for (EntityStateData entData : level.getEntities()) {
+                Vector2i chomk = entData.getChunk();
+                if (!chunksEntities.containsKey(chomk)) {
+                    chunksEntities.put(chomk, new ArrayList<>());
+                }
+                chunksEntities.get(chomk).add(entData);
+            }
+        }
 
         ((HotBar) UIManager.getWidget("hotbar")).setHotbarItems(level.getInventory().toArray(new Byte[0]));
     }
@@ -57,7 +80,7 @@ public class LevelManager {
     public static void createLevel(String name, Long seed) {
         Path levelDir = Paths.get("levels", name);
         levelDir.toFile().mkdirs();
-        try(FileWriter levelFile = new FileWriter(Paths.get(levelDir.toString(), "level.dat").toFile())) {
+        try (FileWriter levelFile = new FileWriter(Paths.get(levelDir.toString(), "level.dat").toFile())) {
             Level newlev = new Level(name, seed);
             Gson g = new Gson();
             levelFile.write(g.toJson(newlev));
@@ -71,18 +94,35 @@ public class LevelManager {
         ((HotBar) UIManager.getWidget("hotbar")).setHotbarItem(slot, block);
     }
 
-    public static void saveLevel() throws IOException {
+    public static void saveLevel() throws IOException, InterruptedException {
         Vector3i pos = Renderman.getPlayer().getWorldPosition();
         level.setPlayer(new ArrayList<>());
         level.getPlayer().add(pos.x);
         level.getPlayer().add(pos.y);
         level.getPlayer().add(pos.z);
         level.setFlying(Renderman.getPlayer().getFlying());
+        level.setTime(StageManager.getGameTime());
+        for (Vector2i chunk : loadedChunks) {
+            saveChunkData(chunk.x, chunk.y);
+        }
+        saveAllEntityStates();
+        ArrayList<EntityStateData> entityStates = new ArrayList<>();
+        for (List<EntityStateData> ents : chunksEntities.values()) {
+            entityStates.addAll(ents);
+        }
+        level.setEntities(entityStates);
         FileWriter writer = new FileWriter(levelFile);
         Gson g = new Gson();
         writer.write(g.toJson(level));
         writer.close();
         System.out.println("Saved level.dat");
+    }
+
+    public static void saveAllEntityStates() {
+        for (Vector2i chunk : loadedChunks) {
+            saveEntityStates(chunk, false);
+        }
+
     }
 
     public static void saveChunkData(int cx, int cz) {
@@ -105,6 +145,21 @@ public class LevelManager {
                     throw new RuntimeException(e);
                 }
             }).start();
+        }
+    }
+
+    public static void saveEntityStates(Vector2i chunk, boolean despawn) {
+        synchronized (chunksEntitiesLock) {
+            ArrayList<EntityStateData> entityStates = new ArrayList<>();
+            for (Entity entity : StageManager.getEntities()) {
+                if (entity.getChunk().equals(chunk) && entity.getEntityTypeId() != null) {
+                    entityStates.add(entity.getEntityStateData());
+                    if (despawn) {
+                        entity.despawn();
+                    }
+                }
+            }
+            chunksEntities.put(chunk, entityStates);
         }
     }
 
@@ -177,7 +232,7 @@ public class LevelManager {
     }
 
     public static void unload() {
-        for(Vector2i chunkPos : chunks.keySet()) {
+        for (Vector2i chunkPos : chunks.keySet()) {
             chunks.get(chunkPos).unload();
         }
         loadedChunks.clear();
@@ -210,5 +265,19 @@ public class LevelManager {
 
     public static boolean getFlying() {
         return level.getFlying();
+    }
+
+    public static Map<Vector2i, List<EntityStateData>> getChunksEntities() {
+        return chunksEntities;
+    }
+
+    public static void saveNewEntityState(EntityStateData entity) {
+        synchronized (chunksEntitiesLock) {
+            Vector2i chonk = entity.getChunk();
+            if (!chunksEntities.containsKey(chonk)) {
+                chunksEntities.put(chonk, new ArrayList<>());
+            }
+            chunksEntities.get(chonk).add(entity);
+        }
     }
 }

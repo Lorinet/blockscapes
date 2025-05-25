@@ -4,7 +4,7 @@ public class UIShader extends Shader {
 
 
     public UIShader() {
-        super("ui");
+        super("ui", new String[] {}, false);
     }
 
     @Override

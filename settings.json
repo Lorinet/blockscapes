@@ -1,1 +1,1 @@
-{"fullscreen":true,"renderDistance":8}
+{"fullscreen":false,"renderDistance":6,"fancyTransparency":true,"shadowMapSize":4096,"shadowsEnabled":true,"thirdPerson":false}

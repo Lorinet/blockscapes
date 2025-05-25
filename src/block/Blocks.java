@@ -11,6 +11,11 @@ import java.util.*;
 
 public class Blocks {
     public static final byte ID_AIR = 0;
+    public static final byte ID_WATER = -108;
+  /*  public static final byte ID_WOOD = -123;
+    public static final byte ID_LEAVES = -109;
+    public static final byte ID_CACTUS = -110;*/
+
     public static final String TEXTURE_ATLAS_NAME = "stone.png";
     public static ArrayList<Material> blockMaterials = new ArrayList<>(List.of(new Material[]{new Material(TEXTURE_ATLAS_NAME, TEXTURE_ATLAS_NAME),}));
 
@@ -60,7 +65,7 @@ public class Blocks {
                 }
             }
         };
-        transparentBlocks = blockTypes.stream().filter(Block::getIsTransparent).map(Block::getId).toList();
+        transparentBlocks = blockTypes.stream().filter((b) -> b.getIsTransparent() || b.hasCustomModel()).map(Block::getId).toList();
     }
 
     public static void unload() {
@@ -85,7 +90,11 @@ public class Blocks {
         return blocks.values();
     }
 
-    public static boolean isTransparent(byte b) {
+    public static boolean exposesNeighbor(byte b) {
         return transparentBlocks.contains(b);
+    }
+
+    public static boolean refractory(byte b) {
+        return b == ID_WATER;
     }
 }

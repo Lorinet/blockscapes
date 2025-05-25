@@ -14,22 +14,22 @@ public class PauseMenu extends Widget {
         super(new Vector2i(0, 0), new Vector2i(Window.getWidth() / UIManager.SCALE, Window.getHeight() / UIManager.SCALE));
         container = new Container(position, size, 0xaa000000, null, new Widget[]{
                 Widget.centered(new Text(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 80), "Game paused", 0xFFFFFFFF), true, false),
-                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 120), new Vector2i(200, 25), "Resume", () -> {
+                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 120), new Vector2i(200, 25), "Resume", (me) -> {
                     if (!Window.getMouseLocked() && visible) {
                         setVisible(false);
                         Window.holdCursorHostage();
                     }
                 }), true, false),
-                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 155), new Vector2i(200, 25), "Settings", () -> {
+                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 155), new Vector2i(200, 25), "Settings", (me) -> {
                     setVisible(false);
                     ((SettingsMenu) UIManager.getWidget("settingsMenu")).setFrom("pauseMenu");
                     UIManager.getWidget("settingsMenu").setVisible(true);
                 }), true, false),
-                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 190), new Vector2i(200, 25), "Save and exit", () -> {
+                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 190), new Vector2i(200, 25), "Save and exit", (me) -> {
                     setVisible(false);
                     StageManager.unplay();
                     UIManager.getWidget("mainMenu").setVisible(true);
-                }), true, false)
+                }), true, false),
         });
         setVisible(false);
     }

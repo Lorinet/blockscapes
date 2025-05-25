@@ -13,7 +13,7 @@ import java.nio.IntBuffer;
 public class EntityShader extends Shader {
 
     public EntityShader() {
-        super("block");
+        super("block", new String[] {"transformation", "projection", "viewMatrix", "renderPass", "viewPos", "textures", "shadowMap", "lightPerspectiveMatrix", "hurting", "fancyTransparency"}, false);
         int uniformBlockIndex = GL46.glGetUniformBlockIndex(program, "MaterialBlock");
 
         if (uniformBlockIndex == GL46.GL_INVALID_INDEX) {
@@ -52,6 +52,14 @@ public class EntityShader extends Shader {
         loadMatrix("viewMatrix", matrix);
     }
 
+    public void loadRenderPass(int renderPass) {
+        loadInt("renderPass", renderPass);
+    }
+
+    public void loadFancyTransparency(int fancyTransparency) {
+        loadInt("fancyTransparency", fancyTransparency);
+    }
+
     public void loadViewPos(Vector3f viewPos) {
         loadVec3("viewPos", viewPos.x, viewPos.y, viewPos.z);
     }
@@ -65,10 +73,22 @@ public class EntityShader extends Shader {
 
     }
 
+    public void loadShadowMap(int shadowMap) {
+        loadInt("shadowMap", shadowMap);
+    }
+
+    public void loadLightPerspectiveMatrix(Matrix4f matrix) {
+        loadMatrix("lightPerspectiveMatrix", matrix);
+    }
+
     public void loadTextures() {
         GL46.glActiveTexture(GL46.GL_TEXTURE0);
         GL46.glBindTexture(GL46.GL_TEXTURE_2D_ARRAY, ModelManager.getTextureArray().getTextureArrayID());
         loadInt("textures", 0);
+    }
+
+    public void loadHurting(int hurting) {
+        loadInt("hurting", hurting);
     }
 
     public void unloadTextures() {

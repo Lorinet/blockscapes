@@ -26,7 +26,7 @@ public class Block {
     private final byte id;
     private final String name;
     private final Map<Vector3i, FaceVertex> faces;
-    private final String customModelName;
+    private final ModelData customModelData;
     private final int materialIndex;
     private final Collider collider;
     private final boolean showInInventory;
@@ -34,7 +34,7 @@ public class Block {
     private final AudioController footstepsSounds;
     private final AudioController blockSounds;
 
-    public Block(int id, String name, boolean showInInventory, boolean isTransparent, Map<Vector3i, FaceVertex> faces, String customModelName, int materialIndex, Collider collider, AudioController footstepsSounds, AudioController blockSounds) {
+    public Block(int id, String name, boolean showInInventory, boolean isTransparent, Map<Vector3i, FaceVertex> faces, ModelData customModelData, int materialIndex, Collider collider, AudioController footstepsSounds, AudioController blockSounds) {
         this.id = (byte)id;
         this.name = name;
         this.showInInventory = showInInventory;
@@ -43,7 +43,7 @@ public class Block {
         this.collider = collider;
         this.footstepsSounds = footstepsSounds;
         this.blockSounds = blockSounds;
-        this.customModelName = customModelName;
+        this.customModelData = customModelData;
         this.materialIndex = materialIndex;
     }
 
@@ -75,8 +75,12 @@ public class Block {
         return materialIndex;
     }
 
+    public boolean hasCustomModel() {
+        return customModelData != null;
+    }
+
     public ModelData getCustomModel() {
-        return ModelManager.getModel(customModelName).getModelData();
+        return customModelData;
     }
 
     public Collider getCollider() {

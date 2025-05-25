@@ -2,7 +2,7 @@ package mesh;
 
 public class MaterialArray extends UBO {
     public MaterialArray(Material[] materials) {
-        super(80, materials.length);
+        super(96, materials.length);
 
         if (materials.length > 16) {
             throw new RuntimeException("Too many materials!");
@@ -16,8 +16,12 @@ public class MaterialArray extends UBO {
             putVec4(material.getEmissiveColor());
             putFloat(material.getShininess());
             putInt(material.getDiffuseTextureIndex());
-            putInt(material.getDiffuseTextureSize().x);
-            putInt(material.getDiffuseTextureSize().y);
+            putInt(material.getEmissiveTextureIndex());
+            putInt(material.getTextureSize().x);
+            putInt(material.getTextureSize().y);
+            putDummy();
+            putDummy();
+            putDummy();
         }
 
         bufferData();

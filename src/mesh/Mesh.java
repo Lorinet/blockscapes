@@ -9,9 +9,11 @@ public class Mesh {
     private int[] textures;
     private final int vertexCount;
     private final ModelData modelData;
+    private final boolean hasTransparency;
 
-    public Mesh(int vao, Material[] materials, int[] textures, int vertexCount, ModelData modelData) {
+    public Mesh(int vao, Material[] materials, int[] textures, int vertexCount, ModelData modelData, boolean hasTransparency) {
         this.vao = vao;
+        this.hasTransparency = hasTransparency;
         if(materials != null) {
             this.materialArray = new MaterialArray(materials);
         }
@@ -38,6 +40,10 @@ public class Mesh {
 
     public ModelData getModelData() {
         return modelData;
+    }
+
+    public boolean hasTransparency() {
+        return hasTransparency;
     }
 
     public void destroy() {

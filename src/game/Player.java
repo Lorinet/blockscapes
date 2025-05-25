@@ -2,12 +2,16 @@ package game;
 
 import block.Block;
 import block.Blocks;
+import entities.Cupcake;
+import entities.RendermanEntity;
 import level.LevelManager;
-import mesh.*;
+import mesh.Mesh;
+import mesh.ModelManager;
 import org.joml.*;
 import ui.HotBar;
 import ui.UIManager;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -16,42 +20,31 @@ import java.util.Objects;
 import static java.lang.Math.*;
 import static org.lwjgl.glfw.GLFW.*;
 
-public class Player extends Entity {
-    private static final float MOVE_SPEED = 4f;
-    private static final float RUNNING_SPEED = 7;
-    private static final float CROUCHING_SPEED = 2f;
-    private static final float PLAYER_HEIGHT = 1.8f;
-    private static final float CROUCHING_HEIGHT = 1.4f;
+public class Player extends Mob {
     private static final float REACH = 5;
-    private static final float JUMP_HEIGHT = 1.25f;
 
-    private static final Vector3d DRAG_FLY = new Vector3d(5, 5, 5);
-    private static final Vector3d DRAG_JUMP = new Vector3d(1.8, 0, 1.8);
-    private static final Vector3d DRAG_FALL = new Vector3d(1.8, 0, 1.8);
     private static final Collection<Float> playerVertexes = new ArrayList<>(List.of());
     private static final Collection<Integer> playerIndexes = new ArrayList<>(List.of());
     private static final Collection<Float> playerTextureCoords = new ArrayList<>(List.of());
     private static final Collection<Float> playerShading = new ArrayList<>(List.of());
     public Vector3f cameraRotation = new Vector3f(0, 0, 0);
+    private static final Vector3f thirdPersonVector = new Vector3f(0, 0, -5);
     private Vector2f prevMouse = new Vector2f(0, 0);
-    private double speed = MOVE_SPEED;
-    private double targetSpeed = MOVE_SPEED;
-    private boolean flying = false;
-    private boolean grounded = false;
-    private boolean crouching = false;
 
     public Player() {
         this(new Vector3f(LevelManager.getInitialPosition()), LevelManager.getFlying());
     }
 
     public Player(Vector3f position, boolean flying) {
-        super(ModelManager.getModel("cactus"), position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Collider(new Vector3f(-0.2f, 0f, -0.2f), new Vector3f(0.2f, -PLAYER_HEIGHT, 0.2f), true));
+        super(new Mesh[]{ModelManager.getModel("player")}, position, new Vector3f(0, 0, 0), new Vector3f(32, 32, 32),
+                new Collider(new Vector3f(-0.2f, 0f, -0.2f), new Vector3f(0.2f, -heightNormal, 0.2f), true), false, 100);
         fly(flying);
+        setVisible(StageManager.getSettings().getThirdPerson());
     }
 
     public Vector3f getCameraPosition() {
         Vector3f perspo = new Vector3f(position);
-        perspo.y += (crouching ? CROUCHING_HEIGHT : PLAYER_HEIGHT) / 2 - 0.2f;
+        perspo.y += (crouching ? heightCrouch : heightNormal) / 2 - 0.2f;
         return perspo;
     }
 
@@ -68,8 +61,11 @@ public class Player extends Entity {
                 LevelManager.setBlock(previous, b);
             }
         };
-
-        Raycast rc = new Raycast(getCameraPosition(), cameraRotation, callback);
+        Vector3f cameraPosition = getCameraPosition();
+        if(StageManager.getSettings().getThirdPerson()) {
+            //cameraPosition = position;
+        }
+        Raycast rc = new Raycast(cameraPosition, cameraRotation, callback, new ArrayList<>());
         while (rc.getDistance() < REACH) {
             if (rc.step()) {
                 break;
@@ -86,7 +82,26 @@ public class Player extends Entity {
             LevelManager.setBlock(next, Blocks.getBlock(Blocks.ID_AIR));
         };
 
-        Raycast rc = new Raycast(getCameraPosition(), cameraRotation, callback);
+        ArrayList<Integer> hurtables = new ArrayList<>();
+        try {
+            for (Entity e : StageManager.getEntities()) {
+                if (!e.isInvincible() && e.id != id) {
+                    FrustumIntersection frustumIntersection = Renderman.getFrustumIntersection();
+                    frustumIntersection.set(Renderman.getProjectionViewMatrix());
+                    if (frustumIntersection.testAab(e.getHitbox().getStart(), e.getHitbox().getEnd())) {
+                        hurtables.add(e.getId());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to get hurtable entities: " + e.toString());
+        }
+
+        Vector3f cameraPosition = getCameraPosition();
+        if(StageManager.getSettings().getThirdPerson()) {
+            //cameraPosition = position;
+        }
+        Raycast rc = new Raycast(cameraPosition, cameraRotation, callback, hurtables);
         while (rc.getDistance() < REACH) {
             if (rc.step()) {
                 break;
@@ -94,11 +109,18 @@ public class Player extends Entity {
         }
     }
 
-    public void move(double deltaTime) {
-        if(Keyboard.getKeyUp(GLFW_KEY_T)) {
-            Mesh mesh = ModelManager.getModel("cactus");
-            Entity ent = new Entity(mesh, new Vector3f(0, 128, 0), new Vector3f(0, 0, 0), new Vector3f(1f, 1f, 1f), new Collider(new Vector3f(-0.5f, -0.5f, -0.5f), new Vector3f(0.5f, 0.5f, 0.5f), true));
-            StageManager.createEntity(ent);
+    private void playerMovement(double deltaTime) {
+        if (Keyboard.getKeyUp(GLFW_KEY_T)) {
+            StageManager.createEntity(new Cupcake(new Vector3f(position.x, position.y + 5, position.z), new Vector3f(0, 0, 0)));
+        }
+        if (Keyboard.getKeyUp(GLFW_KEY_R)) {
+            StageManager.createEntity(new RendermanEntity(new Vector3f(position.x, position.y + 5, position.z), new Vector3f(0, 0, 0)));
+        }
+
+        if(Keyboard.getKeyUp(GLFW_KEY_F5)) {
+            StageManager.getSettings().setThirdPerson(!StageManager.getSettings().getThirdPerson());
+            StageManager.saveSettings();
+            setVisible(StageManager.getSettings().getThirdPerson());
         }
 
         if (Keyboard.getKeyUp(GLFW_KEY_ESCAPE)) {
@@ -169,50 +191,43 @@ public class Player extends Entity {
                 acceleration.y = -by;
             }
         } else {
+            boolean inWater = getInWater();
             if (Keyboard.getKey(GLFW_KEY_SPACE) && grounded) {
-                jump();
+                if(inWater) {
+                    acceleration.y = by * BUOYANCY.y;
+                } else {
+                    jump();
+                }
+            }
+            if(!inWater) {
+                if (Keyboard.getKeyDown(GLFW_KEY_LEFT_SHIFT)) {
+                    crouch(true);
+                }
+                if (Keyboard.getKeyUp(GLFW_KEY_LEFT_SHIFT)) {
+                    crouch(false);
+                }
+                if (Keyboard.getKeyDown(GLFW_KEY_LEFT_CONTROL)) {
+                    run(true);
+                }
+            }
+            if (Keyboard.getKey(GLFW_KEY_LEFT_SHIFT)) {
+                if (inWater) {
+                    acceleration.y = -(by * BUOYANCY.y + 1);
+                }
             }
 
-            if (Keyboard.getKeyDown(GLFW_KEY_LEFT_SHIFT)) {
-                crouch(true);
-            }
-            if (Keyboard.getKeyUp(GLFW_KEY_LEFT_SHIFT)) {
-                crouch(false);
-            }
-
-            if (Keyboard.getKeyDown(GLFW_KEY_LEFT_CONTROL)) {
-                run(true);
-            }
         }
 
         LevelManager.loadChunks(new Vector2i((int) position.x, (int) position.z));
     }
 
-    private void jump() {
-        if (grounded) {
-            velocity.y = sqrt(-2 * GRAVITY.y * JUMP_HEIGHT);
-            grounded = false;
-        }
+    public boolean getUnderwater() {
+        Vector3i blockStandngOn = getBlockStandingOn();
+        blockStandngOn.y += 2;
+        return LevelManager.getBlock(blockStandngOn).getId() == Blocks.ID_WATER;
     }
 
-    private void crouch(boolean yes) {
-        crouching = yes;
-        targetSpeed = yes ? CROUCHING_SPEED : MOVE_SPEED;
-    }
-
-    private void run(boolean yes) {
-        targetSpeed = yes ? RUNNING_SPEED : MOVE_SPEED;
-    }
-
-    private void fly(boolean yes) {
-        if (yes) {
-            velocity.y = sqrt(-2 * GRAVITY.y * JUMP_HEIGHT);
-        }
-        grounded = false;
-        flying = yes;
-    }
-
-    public void look() {
+    public void playerLook() {
         if (Window.getMouseLocked()) {
             Vector2f currentMouse = Mouse.getPosition();
 
@@ -226,11 +241,17 @@ public class Player extends Entity {
                 if ((deltaY >= 0 && cameraRotation.x + deltaY < 90) || (deltaY <= 0 && cameraRotation.x > -90)) {
                     cameraRotation.x += (float) deltaY;
                 } else {
-                    cameraRotation.x = 90 * (cameraRotation.x < 0 ? -1 : 1);
+                    cameraRotation.x = 89 * (cameraRotation.x < 0 ? -1 : 1);
                 }
             }
             if (rotX) {
                 cameraRotation.y += (float) deltaX;
+            }
+
+            if(cameraRotation.x < -89) {
+                cameraRotation.x = -89;
+            } else if(cameraRotation.x > 89) {
+                cameraRotation.x = 89;
             }
 
             prevMouse = currentMouse;
@@ -252,49 +273,23 @@ public class Player extends Entity {
         }).start();
     }
 
-    public Vector3i getWorldPosition() {
-        return new Vector3i((int) (ceil(position.x - 0.5)), (int) ceil(position.y - (PLAYER_HEIGHT / 2)), (int) ceil(position.z - 0.5f));
-    }
-
-    private Vector3i getBlockStandingOn() {
-        return new Vector3i((int) (ceil(position.x - 0.5)), (int) floor(position.y - (PLAYER_HEIGHT / 2)), (int) ceil(position.z - 0.5f));
-    }
-
-    public boolean getFlying() {
-        return flying;
-    }
-
-    @Override
-    public Vector3d getFriction() {
-        if (flying) {
-            return DRAG_FLY;
-        } else if (grounded) {
-            return FRICTION;
-        } else if (velocity.y > 0) {
-            return DRAG_JUMP;
-        } else {
-            return DRAG_FALL;
-        }
-    }
-
-    @Override
-    public boolean getAffectedByGravity() {
-        return !flying;
-    }
-
-    @Override
-    protected void onCollision(Quaterniond collision) {
-        if (collision.y == 1) {
-            grounded = true;
-        }
-    }
-
     @Override
     public void update(double deltaTime) {
         super.update(deltaTime);
-        move(deltaTime);
-        look();
-        Renderman.perspective(getCameraPosition(), cameraRotation);
+        playerMovement(deltaTime);
+        playerLook();
+        setVisible(StageManager.getSettings().getThirdPerson());
+        Vector3f cameraPosition = new Vector3f(this.getCameraPosition());
+        if(StageManager.getSettings().getThirdPerson()) {
+            Vector3f rot = MathUtils.rotateVector(thirdPersonVector, cameraRotation);
+            Vector3f newCameraPosition = new Vector3f(cameraPosition);
+            newCameraPosition.sub(rot);
+            rotation.y = -(float)Math.toRadians(cameraRotation.y);
+            Renderman.perspective(MathUtils.createViewMatrixThirdPerson(newCameraPosition, cameraPosition), newCameraPosition);
+        } else {
+            Renderman.perspective(MathUtils.createViewMatrixFirstPerson(cameraPosition, cameraRotation), cameraPosition);
+        }
+        //Renderman.perspective(cameraPosition, cameraRotation);
     }
 
     @Override

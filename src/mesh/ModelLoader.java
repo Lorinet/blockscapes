@@ -110,22 +110,21 @@ public class ModelLoader {
                         vexMap.put(def, vexIndex);
                         ix.add(vexIndex);
                         vexIndex++;
-                    }
-
-                    if(ref.material != null) {
-                        if (matMap.containsKey(ref.material)) {
-                            max.add(matMap.get(ref.material));
-                        } else {
-                            mats.add(materials.get(ref.material));
-                            matMap.put(ref.material, matIndex);
-                            max.add(matIndex);
-                            matIndex++;
+                        if(ref.material != null) {
+                            if (matMap.containsKey(ref.material)) {
+                                max.add(matMap.get(ref.material));
+                            } else {
+                                mats.add(materials.get(ref.material));
+                                matMap.put(ref.material, matIndex);
+                                max.add(matIndex);
+                                matIndex++;
+                            }
                         }
                     }
                 }
             }
 
-            return new ModelData(new FloatArrayList(vex), new FloatArrayList(tex), new FloatArrayList(nox), new IntArrayList(max), new IntArrayList(ix), mats);
+            return new ModelData(new FloatArrayList(vex), new FloatArrayList(tex), new FloatArrayList(nox), new IntArrayList(max), new IntArrayList(ix), mats, false);
 
         } catch (IOException e) {
             throw new RuntimeException(e);

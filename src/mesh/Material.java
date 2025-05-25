@@ -24,7 +24,8 @@ public class Material {
     private String dissolveTexturePath;
 
     private int diffuseTextureIndex = -1;
-    private Vector2i diffuseTextureSize = new Vector2i(0, 0);
+    private int emissiveTextureIndex = -1;
+    private Vector2i textureSize = new Vector2i(0, 0);
 
     public Material(String name) {
         this.name = name;
@@ -52,7 +53,8 @@ public class Material {
         this.normalMapPath = other.normalMapPath;
         this.dissolveTexturePath = other.dissolveTexturePath;
         this.diffuseTextureIndex = other.diffuseTextureIndex;
-        this.diffuseTextureSize = new Vector2i(other.diffuseTextureSize);
+        this.emissiveTextureIndex = other.emissiveTextureIndex;
+        this.textureSize = new Vector2i(other.textureSize);
     }
 
     public String getName() {
@@ -179,12 +181,20 @@ public class Material {
         return diffuseTextureIndex;
     }
 
-    public void setDiffuseTextureSize(Vector2i diffuseTextureSize) {
-        this.diffuseTextureSize = new Vector2i(diffuseTextureSize);
+    public void setEmissiveTextureIndex(int emissiveTextureIndex) {
+        this.emissiveTextureIndex = emissiveTextureIndex;
     }
 
-    public Vector2i getDiffuseTextureSize() {
-        return diffuseTextureSize;
+    public int getEmissiveTextureIndex() {
+        return emissiveTextureIndex;
+    }
+
+    public void setTextureSize(Vector2i textureSize) {
+        this.textureSize = new Vector2i(textureSize);
+    }
+
+    public Vector2i getTextureSize() {
+        return textureSize;
     }
 
     @Override

@@ -75,6 +75,9 @@ public class Collider {
     }
 
     public Quaterniond collide(Collider other, Vector3d velocity) {
+        if(!other.getCollisionsEnabled()) {
+            return null;
+        }
         double xEntry = velocity.x > 0 ? time(other.start.x - end.x, velocity.x) : time(other.end.x - start.x, velocity.x);
         double xExit = velocity.x > 0 ? time(other.end.x - start.x, velocity.x) : time(other.start.x - end.x, velocity.x);
         double yEntry = velocity.y > 0 ? time(other.start.y - end.y, velocity.y) : time(other.end.y - start.y, velocity.y);

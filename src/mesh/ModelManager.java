@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL46;
-import ui.Text;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -64,20 +63,28 @@ public class ModelManager {
         loadFloatDataIntoVBO(vao, 0, 3, vertexes);
         loadFloatDataIntoVBO(vao, 1, 2, textureCoords);
         loadIndexesVBO(vao, indexes);
+        GL46.glEnableVertexAttribArray(0);
+        GL46.glEnableVertexAttribArray(1);
         GL46.glBindVertexArray(0);
-        return new Mesh(vao, null, new int[]{getStaticTexture(textureName).getTextureID()}, indexes.size(), null);
+        IntArrayList textures = new IntArrayList();
+        if(textureName != null) textures.add(getStaticTexture(textureName).getTextureID());
+        return new Mesh(vao, null, textures.toArray(new int[0]), indexes.size(), null, true);
     }
 
     public static Mesh createModelFromData(ModelData meshData, boolean saveModelData) {
         ArrayList<Integer> textureIDs = new ArrayList<>();
-        int texCunt = 0;
+        //int texCunt = 0;
         for (Material mat : meshData.getMaterials()) {
             if (mat != null && mat.getDiffuseTexturePath() != null) {
                 TextureArray.BufferedTexture diffuse = getTextureArray().getOrLoadTexture(mat.getDiffuseTexturePath());
                 mat.setDiffuseTextureIndex(diffuse.getTextureID());
-                mat.setDiffuseTextureSize(diffuse.getSize());
-                texCunt += 1;
                 textureIDs.add(diffuse.getTextureID());
+                if(mat.getEmissiveTexturePath() != null) {
+                    TextureArray.BufferedTexture emissive = getTextureArray().getOrLoadTexture(mat.getEmissiveTexturePath());
+                    mat.setEmissiveTextureIndex(emissive.getTextureID());
+                    textureIDs.add(emissive.getTextureID());
+                }
+                mat.setTextureSize(diffuse.getSize());
             }
         }
         int vao = createVAO();
@@ -87,12 +94,21 @@ public class ModelManager {
         loadFloatDataIntoVBO(vao, 3, 1, meshData.getShading());
         loadIntDataIntoVBO(vao, 4, 1, meshData.getMaterialIndices());
         loadIndexesVBO(vao, meshData.getIndices());
+        GL46.glEnableVertexAttribArray(0);
+        GL46.glEnableVertexAttribArray(1);
+        GL46.glEnableVertexAttribArray(2);
+        GL46.glEnableVertexAttribArray(3);
+        GL46.glEnableVertexAttribArray(4);
         GL46.glBindVertexArray(0);
         ModelData data = null;
         if (saveModelData) {
             data = meshData;
         }
-        return new Mesh(vao, meshData.getMaterials().toArray(new Material[0]), textureIDs.stream().mapToInt(Integer::intValue).toArray(), meshData.getIndices().size(), data);
+        Material[] mats = null;
+        if(meshData.getMaterials() != null && !meshData.getMaterials().isEmpty()) {
+            mats = meshData.getMaterials().toArray(new Material[0]);
+        }
+        return new Mesh(vao, mats, textureIDs.stream().mapToInt(Integer::intValue).toArray(), meshData.getIndices().size(), data, meshData.getHasTransparency());
     }
 
     public static TextureArray getTextureArray() {
@@ -206,8 +222,8 @@ public class ModelManager {
         for (Material mat : materials) {
             /**/
             buffer.put(mat.getDiffuseTextureIndex());
-            buffer.put(mat.getDiffuseTextureSize().x);
-            buffer.put(mat.getDiffuseTextureSize().y);
+            buffer.put(mat.getTextureSize().x);
+            buffer.put(mat.getTextureSize().y);
         }
 
         buffer.flip();

@@ -3,8 +3,11 @@ package block;
 import audio.AudioController;
 import audio.AudioManager;
 import game.Collider;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import mesh.Material;
+import mesh.ModelData;
 import mesh.ModelLoader;
+import mesh.ModelManager;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -79,6 +82,7 @@ public class BlockDataFile {
     public Block toBlock() {
         HashMap<Vector3i, FaceVertex> faces = null;
         int materialIndex = 0;
+        ModelData customModelData = null;
 
         if (atlasFaces != null) {
             faces = new HashMap<>();
@@ -116,6 +120,22 @@ public class BlockDataFile {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+            } else if(customModel != null) {
+                customModelData = new ModelData(ModelManager.getModel(customModel).getModelData());
+                HashMap<Integer, Integer> modelIndexMapping = new HashMap<>();
+                for (int i = 0; i < customModelData.getMaterials().size(); i++) {
+                    if(Blocks.blockMaterials.contains(customModelData.getMaterials().get(i))) {
+                        modelIndexMapping.put(i, Blocks.blockMaterials.indexOf(customModelData.getMaterials().get(i)));
+                    } else {
+                        Blocks.blockMaterials.add(customModelData.getMaterials().get(i));
+                        modelIndexMapping.put(i, Blocks.blockMaterials.size() - 1);
+                    }
+                }
+                IntArrayList newMatIndices = new IntArrayList(customModelData.getMaterialIndices().size());
+                for(int i = 0; i < customModelData.getMaterialIndices().size(); i++) {
+                    newMatIndices.add(i, (int)modelIndexMapping.get(customModelData.getMaterialIndices().getInt(i)));
+                }
+                customModelData.setMaterialIndices(newMatIndices);
             }
         }
         Collider coll = null;
@@ -124,6 +144,8 @@ public class BlockDataFile {
                 throw new RuntimeException("Invalid block data file for " + name);
             }
             coll = new Collider(new Vector3f(collider[0]), new Vector3f(collider[1]), true);
+        } else {
+            coll = new Collider(new Vector3f(), new Vector3f(), false);
         }
         AudioController footstepsAudio = null;
         if (footstepsSound != null) {
@@ -133,7 +155,7 @@ public class BlockDataFile {
         if (blockSound != null) {
             blockAudio = AudioManager.getSound(blockSound);
         }
-        return new Block(id, name, showInInventory, isTransparent, faces, null, materialIndex, coll, footstepsAudio, blockAudio);
+        return new Block(id, name, showInInventory, isTransparent, faces, customModelData, materialIndex, coll, footstepsAudio, blockAudio);
     }
 
 }

@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import mesh.DirectionalLight;
 import mesh.Mesh;
 import mesh.ModelManager;
+import mesh.TextureCubemap;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL46;
@@ -23,8 +24,8 @@ public class Sky {
     private static final Vector3f nightSunColor = new Vector3f(0.0f, 0.0f, 0.0f);
 
     private static final Vector3f dayMoonColor = new Vector3f(0.0f, 0.0f, 0.0f);
-    private static final Vector3f nightMoonColor = new Vector3f(0.6f, 0.7f, 0.8f);
-    private static final Vector3f moonsetMoonColor = new Vector3f(0.3f, 0.4f, 0.5f);
+    private static final Vector3f nightMoonColor = new Vector3f(0.2f, 0.25f, 0.3f);
+    private static final Vector3f moonsetMoonColor = new Vector3f(0.15f, 0.2f, 0.25f);
 
     private static final Vector3f nightSkyColor = new Vector3f(0.05f, 0.05f, 0.1f);
     private static final Vector3f sunsetSkyColor = new Vector3f(0.9f, 0.5f, 0f);
@@ -34,7 +35,7 @@ public class Sky {
     private static final Vector3f[] sunGradient = {nightSunColor, nightSunColor, sunsetSunColor, daySunColor, daySunColor, sunsetSunColor, nightSunColor, nightSunColor};
     private static final float[] sunTimes = {0.0f, 4.0f, 7.0f, 9.0f, 18.0f, 21.0f, 23.0f, 24.0f};
 
-    private static final Vector3f[] moonGradient = {nightMoonColor, nightMoonColor, moonsetMoonColor, dayMoonColor, dayMoonColor, moonsetMoonColor, nightMoonColor, nightMoonColor};
+    private static final Vector3f[] moonGradient = {nightMoonColor, nightMoonColor, nightMoonColor, dayMoonColor, dayMoonColor, nightMoonColor, nightMoonColor, nightMoonColor};
     private static final float[] moonTimes = {0.0f, 4.0f, 7.0f, 9.0f, 17.0f, 19.0f, 21.0f, 24.0f};
 
     private static final Vector3f[] skyGradient = {nightSkyColor, nightSkyColor, sunsetSkyColor, daySkyColor, daySkyColor, sunsetSkyColor, nightSkyColor, nightSkyColor};
@@ -59,6 +60,11 @@ public class Sky {
     private static final float MOON_SIZE  = 125.0f;
     private static final float SUN_SIZE = 150.0f;
 
+    private static Vector3f skyAxis = new Vector3f(-1f, 0f, -0.5f);
+
+    private static TextureCubemap textureCubemap;
+    private static Mesh skyboxMesh;
+
     private static Mesh sunModel;
     private static Mesh moonModel;
 
@@ -70,6 +76,9 @@ public class Sky {
         ModelManager.loadStaticTexture("moon.png");
         sunModel = ModelManager.createFlatModelUsingStaticTexture("sun.png", celestialBodyVertexes, celestialBodyTextureCoords, celestialBodyIndices);
         moonModel = ModelManager.createFlatModelUsingStaticTexture("moon.png", celestialBodyVertexes, celestialBodyTextureCoords, celestialBodyIndices);
+        GL46.glActiveTexture(GL46.GL_TEXTURE0);
+        textureCubemap = new TextureCubemap("sky");
+        skyboxMesh = ModelManager.getModel("skycube");
     }
 
     public static void unload() {
@@ -77,39 +86,43 @@ public class Sky {
         moonModel.destroy();
         sunModel = null;
         moonModel = null;
+        textureCubemap.destroy();
+        textureCubemap = null;
+        skyboxMesh = null;
     }
 
     public static void update(float time) {
-        System.out.println("TIME: " + time);
+        //System.out.println("TIME: " + time);
         float normalizedTime = time / 24.0f;
 
-        float sunElevationSineValue = (float) Math.sin(normalizedTime * 2.0f * Math.PI - Math.PI / 2.0f);
-        float sunActualElevationDegrees = MIN_SUN_ELEVATION_ANGLE_DEGREES + (MAX_SUN_ELEVATION_ANGLE_DEGREES - MIN_SUN_ELEVATION_ANGLE_DEGREES) * (sunElevationSineValue * 0.5f + 0.5f);
-        float sunActualElevationRad = (float) Math.toRadians(sunActualElevationDegrees);
+        float sinusSun = (float) Math.sin(normalizedTime * 2.0f * Math.PI - Math.PI / 2.0f);
+        float sunAngle = MIN_SUN_ELEVATION_ANGLE_DEGREES + (MAX_SUN_ELEVATION_ANGLE_DEGREES - MIN_SUN_ELEVATION_ANGLE_DEGREES) * (sinusSun * 0.5f + 0.5f);
+        float sunAngleRadian = (float) Math.toRadians(sunAngle);
 
-        float sunAzimuthAngleRad = normalizedTime * 2.0f * (float) Math.PI + (float) Math.toRadians(270.0f);
+        float sunAzimute = normalizedTime * 2.0f * (float) Math.PI + (float) Math.toRadians(270.0f);
 
-        float sunX = (float) (Math.cos(sunActualElevationRad) * Math.sin(sunAzimuthAngleRad));
-        float sunY = (float) Math.sin(sunActualElevationRad);
-        float sunZ = (float) (Math.cos(sunActualElevationRad) * Math.cos(sunAzimuthAngleRad));
+        float sunX = (float) (Math.cos(sunAngleRadian) * Math.sin(sunAzimute));
+        float sunY = (float) Math.sin(sunAngleRadian);
+        float sunZ = (float) (Math.cos(sunAngleRadian) * Math.cos(sunAzimute));
         sun.setDirection(new Vector3f(sunX, sunY, sunZ).normalize());
 
         float moonNormalizedTime = (normalizedTime + 0.5f) % 1.0f;
 
-        float moonElevationSineValue = (float) Math.sin(moonNormalizedTime * 2.0f * Math.PI - Math.PI / 2.0f);
-        float moonActualElevationDegrees = MIN_MOON_ELEVATION_ANGLE_DEGREES + (MAX_MOON_ELEVATION_ANGLE_DEGREES - MIN_MOON_ELEVATION_ANGLE_DEGREES) * (moonElevationSineValue * 0.5f + 0.5f);
-        float moonActualElevationRad = (float) Math.toRadians(moonActualElevationDegrees);
+        float sinusMoon = (float) Math.sin(moonNormalizedTime * 2.0f * Math.PI - Math.PI / 2.0f);
+        float moonAngle = MIN_MOON_ELEVATION_ANGLE_DEGREES + (MAX_MOON_ELEVATION_ANGLE_DEGREES - MIN_MOON_ELEVATION_ANGLE_DEGREES) * (sinusMoon * 0.5f + 0.5f);
+        float moonAngleRadian = (float) Math.toRadians(moonAngle);
 
-        float moonAzimuthAngleRad = moonNormalizedTime * 2.0f * (float) Math.PI + (float) Math.toRadians(270.0f);
+        float moonAzimute = moonNormalizedTime * 2.0f * (float) Math.PI + (float) Math.toRadians(270.0f);
 
-        float moonX = (float) (Math.cos(moonActualElevationRad) * Math.sin(moonAzimuthAngleRad));
-        float moonY = (float) Math.sin(moonActualElevationRad);
-        float moonZ = (float) (Math.cos(moonActualElevationRad) * Math.cos(moonAzimuthAngleRad));
+        float moonX = (float) (Math.cos(moonAngleRadian) * Math.sin(moonAzimute));
+        float moonY = (float) Math.sin(moonAngleRadian);
+        float moonZ = (float) (Math.cos(moonAngleRadian) * Math.cos(moonAzimute));
         moon.setDirection(new Vector3f(moonX, moonY, moonZ).normalize());
 
         sun.setColor(interpole(time, sunTimes, sunGradient));
         moon.setColor(interpole(time, moonTimes, moonGradient));
         skyColor = interpole(time, skyTimes, skyGradient);
+
     }
 
     private static Vector3f interpole(float time, float[] times, Vector3f[] grad) {
@@ -141,6 +154,12 @@ public class Sky {
         return getTransformation(moon.getDirection(), MOON_SIZE);
     }
 
+    public static Matrix4f getStarsRotation() {
+        Matrix4f rotationMatrix = new Matrix4f();
+        rotationMatrix.rotate(StageManager.getGameTime() / 24.0f * 2.0f * (float) Math.PI, skyAxis);
+        return rotationMatrix;
+    }
+
     public static Mesh getSunModel() {
         return sunModel;
     }
@@ -159,5 +178,13 @@ public class Sky {
 
     public static Vector3f getSkyColor() {
         return skyColor;
+    }
+
+    public static int getSkyboxTextureID() {
+        return textureCubemap.getTextureID();
+    }
+
+    public static Mesh getSkyboxModel() {
+        return skyboxMesh;
     }
 }

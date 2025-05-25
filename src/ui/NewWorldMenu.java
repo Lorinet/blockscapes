@@ -26,7 +26,7 @@ public class NewWorldMenu extends Widget {
                 Widget.centered(textBoxName, true, false),
                 Widget.centered(new Text(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 155), "Seed:", 0xFFFFFFFF), true, false),
                 Widget.centered(textBoxSeed, true, false),
-                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 200), new Vector2i(200, 25), "Create world", () -> {
+                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 200), new Vector2i(200, 25), "Create world", (me) -> {
                     Long seed = null;
                     try {
                         seed = Long.parseLong(textBoxSeed.getText());
@@ -41,7 +41,7 @@ public class NewWorldMenu extends Widget {
                     textBoxName.setText("");
                     StageManager.play(name);
                 }), true, false),
-                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 230), new Vector2i(200, 25), "Back", () -> {
+                Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, 230), new Vector2i(200, 25), "Back", (me) -> {
                     setVisible(false);
                     UIManager.getWidget("levelsMenu").setVisible(true);
                 }), true, false)

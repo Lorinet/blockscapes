@@ -1,0 +1,5 @@
+# Made in Blockbench 4.12.4
+newmtl m_a1e84e49-14c8-bd66-11fc-eb491f90d982
+map_Kd renderman.png
+map_Ke renderman_emissive.png
+newmtl none

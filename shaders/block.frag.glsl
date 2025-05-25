@@ -15,8 +15,9 @@ struct Material {
     vec4 emissiveColor;
     float shininess;
     int diffuseTextureID;
-    int diffuseTextureWidth;
-    int diffuseTextureHeight;
+    int emissiveTextureID;
+    int textureWidth;
+    int textureHeight;
 };
 
 struct DirectionalLight {
@@ -34,24 +35,57 @@ layout(std140) uniform DirectionalLightBlock {
 
 uniform sampler2DArray textures;
 uniform vec3 viewPos;
+uniform int fancyTransparency;
+uniform int renderPass;
+
+uniform int hurting;
+
+uniform sampler2D shadowMap;
+uniform mat4 lightPerspectiveMatrix;
 
 out vec4 out_Color;
 
+int calculateShadow() {
+    vec4 posInLightEyes = lightPerspectiveMatrix * vec4(pass_position, 1.0);
+    vec3 projCoords = posInLightEyes.xyz / posInLightEyes.w;
+    projCoords = (projCoords + 1.0) / 2.0;
+    if(projCoords.y > 1.0) {
+        return 1;
+    }
+
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    float bias = 0.005;
+    int shadow = 0;
+    if (projCoords.z > 1.0) {
+        shadow = 1;
+    }
+    else {
+        shadow = currentDepth - bias > closestDepth ? 1 : 0;
+    }
+    return shadow;
+}
 
 void main() {
     Material material = materials[pass_materialIndex];
-    float texCoord_x = pass_textureCoords.x * material.diffuseTextureWidth / 4096;
-    float texCoord_y = pass_textureCoords.y * material.diffuseTextureHeight / 4096;
+    vec2 texCoords = vec2(pass_textureCoords.x * material.textureWidth / 4096, pass_textureCoords.y * material.textureHeight / 4096);
+    vec4 diffuseTextureColor = texture(textures, vec3(texCoords, material.diffuseTextureID));
+    vec4 emissive = (material.emissiveTextureID > -1 ? texture(textures, vec3(texCoords, material.emissiveTextureID)) : material.emissiveColor);
+
+    float solidThreshold = (fancyTransparency < 1) ? 0.4 : (1.0 - 0.001);
+
+    if (renderPass == 0 && diffuseTextureColor.a < solidThreshold) {
+        discard;
+    } else if (renderPass == 1 && diffuseTextureColor.a >= 1.0 - 0.001) {
+        discard;
+    }
 
     vec3 norm = normalize(pass_normals);
     vec3 viewDir = normalize(viewPos - pass_position);
 
-    vec3 emissive = material.emissiveColor.rgb;
-    vec4 textureColor = texture(textures, vec3(vec2(texCoord_x, texCoord_y), material.diffuseTextureID));
 
-
-    vec3 diffuseBase = textureColor.rgb * material.diffuseColor.rgb;
-    vec3 ambientBase = textureColor.rgb * material.ambientColor.rgb;
+    vec3 diffuseBase = diffuseTextureColor.rgb * material.diffuseColor.rgb;
+    vec3 ambientBase = diffuseTextureColor.rgb * material.ambientColor.rgb;
 
     vec3 diffuse = vec3(0);
     vec3 ambient = ambientBase;
@@ -59,17 +93,10 @@ void main() {
     vec3 specular = vec3(0);
     bool generateSpicules = any(greaterThan(material.specularColor.rgb, vec3(0.0)));
 
-    DirectionalLight dirLight;
-    dirLight.direction = vec4(0.0, 1.0, 0.0, 1.0);
-    dirLight.color = vec4(1.0, 1.0, 1.0, 1.0);
-
     for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++) {
         DirectionalLight light = directionalLights[i];
-        //DirectionalLight light = dirLight;
         float lightNormal = max(dot(norm, light.direction.xyz), 0.0);
         diffuse += diffuseBase * lightNormal * light.color.rgb;
-        //ambient = ambient * light.color.rgb;
-
         if (generateSpicules) {
             vec3 halfwayDir = normalize(light.direction.xyz + viewDir);
             float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess / 2);
@@ -77,12 +104,20 @@ void main() {
         }
     }
 
-
-    vec3 result = ambient + diffuse + specular + emissive;
-
-    out_Color = vec4(result/* * pass_shading*/, 1.0);
-    //out_Color = vec4(norm, 1.0);
-    if (textureColor.a < 0.05) {
-        discard;
+    int shadowing = calculateShadow();
+    float surfaceSunShadowing = clamp(shadowing * length(directionalLights[0].color.rgb), 0.0, 1.0);
+    vec3 blinPhong = (1.0 - surfaceSunShadowing) * (diffuse + specular);
+    if (shadowing > 0) {
+        ambient *= pass_shading;
+        //blinPhong = vec3(0);
     }
+    vec4 result = vec4(emissive.rgb + ambient + blinPhong, diffuseTextureColor.a);
+    if(hurting == 1) {
+        result.r = clamp(result.r + 0.5, 0.0, 1.0);
+        result.g = clamp(result.g + 0.2, 0.0, 1.0);
+        result.b = clamp(result.b + 0.2, 0.0, 1.0);
+        result.a = clamp(result.a + 0.3, 0.0, 1.0);
+    }
+    out_Color = result;
+
 }

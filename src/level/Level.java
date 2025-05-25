@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.List;
 
 public class Level {
     private String name;
     private long seed;
+    private float time;
     private ArrayList<Byte> inventory;
     private ArrayList<Integer> player;
+    private ArrayList<EntityStateData> entities;
     private boolean flying;
 
     public Level(String name, Long seed) {
@@ -18,6 +21,8 @@ public class Level {
         inventory = new ArrayList<>(Arrays.asList(new Byte[]{null, null, null, null, null, null, null, null, null, null}));
         player = new ArrayList<>(Arrays.asList(0, 128, 0));
         flying = false;
+        this.time = 7;
+        this.entities = new ArrayList<>();
     }
 
     public String getName() {
@@ -58,5 +63,21 @@ public class Level {
 
     public void setFlying(boolean flying) {
         this.flying = flying;
+    }
+
+    public float getTime() {
+        return time;
+    }
+
+    public void setTime(float time) {
+        this.time = time;
+    }
+
+    public List<EntityStateData> getEntities() {
+        return entities;
+    }
+
+    public void setEntities(List<EntityStateData> entities) {
+        this.entities = new ArrayList<>(entities);
     }
 }

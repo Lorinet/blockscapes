@@ -1,0 +1,12 @@
+{
+    "id": -109,
+    "name": "Leaves",
+    "showInInventory": true,
+    "isTransparent": true,
+    "collider": [{"x":  -0.5, "y":  -0.5, "z":  -0.5}, {"x":  0.5, "y":  0.5, "z":  0.5}],
+    "atlasFaces": [19, 19, 19, 19, 19, 19],
+    "customModel": null,
+    "customMaterial": null,
+    "footstepsSound": "footsteps_grass",
+    "blockSound": "footsteps_grass"
+}

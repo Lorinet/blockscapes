@@ -3,6 +3,7 @@ package game;
 import audio.AudioManager;
 import block.Blocks;
 import mesh.ModelManager;
+import mesh.ShadowMap;
 import ui.UIManager;
 
 public class Main {
@@ -12,10 +13,11 @@ public class Main {
         AudioManager.init();
         StageManager.init();
         Window.create();
+        ModelManager.init();
         Blocks.init();
         Renderman.init();
         Sky.init();
-        ModelManager.init();
+        ShadowMap.init();
         UIManager.init();
         StageManager.mainLoop();
     }
@@ -25,6 +27,7 @@ public class Main {
         UIManager.unload();
         Renderman.unload();
         Sky.unload();
+        ShadowMap.unload();
         Blocks.unload();
         StageManager.unload();
         ModelManager.unload();

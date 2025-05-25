@@ -1,0 +1,4 @@
+newmtl glass_block
+Ns 700.0
+Ks 0.4 0.7 0.8
+Kd 0.6 0.6 0.6

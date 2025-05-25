@@ -1,23 +1,33 @@
 package game;
 
-import level.LevelManager;
 import block.Block;
 import block.Blocks;
+import entities.RendermanEntity;
+import level.Chunk;
+import level.EntityStateData;
+import level.LevelManager;
 import mesh.Mesh;
-import org.joml.Quaterniond;
-import org.joml.Vector3d;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
+import org.joml.*;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Optional;
 
-public class Entity {
-    public static final Vector3d GRAVITY = new Vector3d(0, -32f, 0);
-    public static final Vector3d FRICTION = new Vector3d(20, 2, 20);
+import static java.lang.Math.ceil;
 
-    protected Mesh model;
+public class Entity {
+    public static final int ENTITY_RENDERMAN = 1;
+    public static final int ENTITY_CUPCAKE = 2;
+
+    public static final Vector3d GRAVITY = new Vector3d(0, -32f, 0);
+    public static final Vector3d BUOYANCY = new Vector3d(0, 2f, 0);
+    public static final Vector3d FRICTION = new Vector3d(20, 2, 20);
+    protected static final float HURT_TIME = 0.08f;
+    protected static float heightNormal = 1.8f;
+
+    protected Integer id;
+    protected Mesh[] model;
     protected Vector3f position;
     protected Vector3f rotation;
     protected Vector3f scale;
@@ -25,7 +35,15 @@ public class Entity {
     protected Vector3d acceleration;
     protected Collider hitbox;
 
-    public Entity(Mesh model, Vector3f position, Vector3f rotation, Vector3f scale, Collider hitbox) {
+    protected float health = 100;
+    protected float hurtWhen = -1;
+    protected boolean invincible = true;
+
+    protected boolean visible = true;
+
+    public Entity(Mesh[] model, Vector3f position, Vector3f rotation, Vector3f scale, Collider hitbox,
+                  boolean invincible, float health, boolean visible) {
+        this.id = null;
         this.model = model;
         this.position = position;
         this.rotation = rotation;
@@ -33,15 +51,24 @@ public class Entity {
         this.velocity = new Vector3d();
         this.acceleration = new Vector3d();
         this.hitbox = hitbox;
+        this.invincible = invincible;
+        this.health = health;
+        this.visible = visible;
     }
 
+    public static Entity instantiateEntity(EntityStateData data) {
+        Vector3f positionAdj = new Vector3f(data.getPosition());
+        switch (data.getType()) {
+            case ENTITY_RENDERMAN:
+                positionAdj.y += RendermanEntity.heightNormal * 2;
+                return new RendermanEntity(positionAdj, data.getRotation());
+            default:
+                throw new RuntimeException("Invalid entity ID " + data.getType());
+        }
+    }
 
-    public Mesh getModel() {
+    public Mesh[] getModels() {
         return model;
-    }
-
-    public void setModel(Mesh model) {
-        this.model = model;
     }
 
     public Vector3f getPosition() {
@@ -68,16 +95,24 @@ public class Entity {
         this.scale = scale;
     }
 
-    public void move(Vector3f by) {
-        position.add(by);
-    }
-
     public void rotate(Vector3f by) {
         rotation.add(by);
     }
 
     public void scale(Vector3f scale) {
         this.scale = scale;
+    }
+
+    public boolean getVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public Vector3d getVelocity() {
@@ -96,14 +131,69 @@ public class Entity {
         return FRICTION;
     }
 
-    public void destroy() {
-        model.destroy();
+    public void attach(int entityId) {
+        id = entityId;
     }
 
-    public void updateModel(Mesh model) {
-        Mesh die = this.model;
+    public void despawn() {
+        if(id != null) {
+            StageManager.despawnEntity(id);
+        } else {
+            destroy();
+        }
+    }
+
+    public void destroy() {
+        /*for (Mesh m : model) {
+            m.destroy();
+        }*/
+    }
+
+    public void updateModels(Mesh[] model) {
+        Mesh[] die = this.model;
         this.model = model;
-        die.destroy();
+        for (Mesh m : die) {
+            m.destroy();
+        }
+    }
+
+    protected void onCollision(Quaterniond collision, ArrayList<Entity> entity, ArrayList<Block> block) {
+
+    }
+
+    protected void hurt(float howMuch) {
+        if (invincible) {
+            return;
+        }
+        health -= howMuch;
+        if (health <= 0) {
+            Vector2i chunk = getChunk();
+            despawn();
+            LevelManager.saveAllEntityStates();
+        } else {
+            hurtWhen = StageManager.getGameTimeLowRes(HURT_TIME);
+        }
+    }
+
+    public float getHealth() {
+        return health;
+    }
+
+    public boolean isInvincible() {
+        return invincible;
+    }
+
+    protected int getHurting() {
+        if (hurtWhen < 0) {
+            return 0;
+        }
+        float currentHurtTime = StageManager.getGameTimeLowRes(HURT_TIME);
+        if (hurtWhen == currentHurtTime) {
+            return 1;
+        } else {
+            hurtWhen = -1;
+            return 0;
+        }
     }
 
     public void update(double deltaTime) {
@@ -117,13 +207,22 @@ public class Entity {
         velocity.add(acceleration);
         acceleration = new Vector3d();
         if (hitbox != null && hitbox.getCollisionsEnabled()) {
-            collisions(deltaTime);
+            try {
+                collisions(deltaTime);
+            } catch (Exception e) {
+                System.out.println("Failed to do collisions for entity " + id + " at " + getWorldPosition());
+                despawn();
+                return;
+            }
         }
         Vector3d velo = new Vector3d(velocity);
         velo.mul(deltaTime);
         position.add(new Vector3f((float) velo.x, (float) velo.y, (float) velo.z));
         if (getAffectedByGravity()) {
             Vector3d grav = new Vector3d(GRAVITY);
+            if(getInWater()) {
+                grav = new Vector3d(BUOYANCY);
+            }
             grav.mul(deltaTime);
             velocity.add(grav);
         }
@@ -150,9 +249,11 @@ public class Entity {
             Vector3d velocity = new Vector3d(this.velocity);
             velocity.mul(deltaTime);
             Vector3i step = new Vector3i(velocity.x > 0 ? 1 : -1, velocity.y > 0 ? 1 : -1, velocity.z > 0 ? 1 : -1);
-            Vector3i steps = new Vector3i((int) (hitbox.getScale().x), (int) (hitbox.getScale().y), (int) (hitbox.getScale().z));
+            Vector3i steps = new Vector3i((int) (hitbox.getScale().x), (int) (hitbox.getScale().y),
+                    (int) (hitbox.getScale().z));
             Vector3i intPos = new Vector3i((int) position.x, (int) position.y, (int) position.z);
-            Vector3i nextPos = new Vector3i((int) (position.x + velocity.x), (int) (position.y + velocity.y), (int) (position.z + velocity.z));
+            Vector3i nextPos = new Vector3i((int) (position.x + velocity.x), (int) (position.y + velocity.y),
+                    (int) (position.z + velocity.z));
             ArrayList<Quaterniond> potentialCollisions = new ArrayList<>();
 
             int bx = intPos.x - step.x * (steps.x + 1);
@@ -161,6 +262,20 @@ public class Entity {
             int ey = nextPos.y + step.y * (steps.y + 3);
             int bz = intPos.z - step.z * (steps.z + 1);
             int ez = nextPos.z + step.z * (steps.z + 2);
+
+            ArrayList<Entity> collisionEntity = new ArrayList<>();
+            ArrayList<Block> collisionBlock = new ArrayList<>();
+
+            for (Entity e : StageManager.getEntities()) {
+                if (e.hitbox.getCollisionsEnabled() && e.id != id) {
+                    Collider entCol = e.hitbox.clone();
+                    Quaterniond collision = hitbox.collide(entCol, velocity);
+                    if (collision != null) {
+                        potentialCollisions.add(collision);
+                        collisionEntity.add(e);
+                    }
+                }
+            }
 
 
             for (int x = Math.min(bx, ex); x <= Math.max(bx, ex); x += Math.abs(step.x)) {
@@ -174,6 +289,7 @@ public class Entity {
                             Quaterniond collision = hitbox.collide(blockCol, velocity);
                             if (collision != null) {
                                 potentialCollisions.add(collision);
+                                collisionBlock.add(b);
                             }
                         }
                     }
@@ -199,12 +315,45 @@ public class Entity {
                 position.z += (float) (velocity.z * collision.w);
                 this.velocity.z = 0;
             }
-            onCollision(collision);
+            onCollision(collision, collisionEntity, collisionBlock);
         }
     }
 
-    protected void onCollision(Quaterniond collision) {
-
+    public Integer getEntityTypeId() {
+        return null;
     }
 
+
+    public EntityStateData getEntityStateData() {
+        if (getEntityTypeId() == null) {
+            return null;
+        }
+        return new EntityStateData(getEntityTypeId(), getWorldPosition(), getRotation(), getHealth());
+    }
+
+    public float getModelHeight() {
+        return heightNormal;
+    }
+
+    public Vector3i getWorldPosition() {
+        return new Vector3i((int) (ceil(position.x - 0.5)), (int) ceil(position.y - (getModelHeight() / 2) + 0.01),
+                (int) ceil(position.z - 0.5f));
+    }
+
+    public boolean getInWater() {
+        return LevelManager.getBlock(getWorldPosition()).getId() == Blocks.ID_WATER;
+    }
+
+    public Vector2i getChunk() {
+        Vector3i worldPos = getWorldPosition();
+        int chunkX = worldPos.x / Chunk.SIZE_XZ;
+        int chunkZ = worldPos.z / Chunk.SIZE_XZ;
+        if (worldPos.x < 0) {
+            chunkX--;
+        }
+        if (worldPos.z < 0) {
+            chunkZ--;
+        }
+        return new Vector2i(chunkX, chunkZ);
+    }
 }

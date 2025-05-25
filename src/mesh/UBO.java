@@ -46,6 +46,10 @@ public class UBO {
         buffer.putInt(i);
     }
 
+    protected void putDummy() {
+        buffer.putInt(0);
+    }
+
     protected void reset() {
         buffer = BufferUtils.createByteBuffer(structSize * elementCount);
     }

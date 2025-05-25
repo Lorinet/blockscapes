@@ -23,7 +23,7 @@ public class Button extends Widget {
 
     @Override
     public void onClick() {
-        this.click.onClick();
+        this.click.onClick(this);
     }
 
     @Override
@@ -37,6 +37,6 @@ public class Button extends Widget {
     }
 
     public interface Action {
-        void onClick();
+        void onClick(Button me);
     }
 }

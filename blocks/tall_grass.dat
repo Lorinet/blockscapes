@@ -1,0 +1,12 @@
+{
+    "id": -106,
+    "name": "Tall Grass",
+    "showInInventory": true,
+    "isTransparent": false,
+    "collider": null,
+    "atlasFaces": [],
+    "customModel": "tall_grass",
+    "customMaterial": null,
+    "footstepsSound": "footsteps_grass",
+    "blockSound": "footsteps_grass"
+}

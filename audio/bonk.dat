@@ -1,0 +1,7 @@
+{
+    "name": "bonk",
+    "volume": -2,
+    "sounds": [
+        "bonk"
+    ]
+}

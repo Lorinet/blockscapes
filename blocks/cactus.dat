@@ -1,0 +1,12 @@
+{
+    "id": -110,
+    "name": "Cactus",
+    "showInInventory": true,
+    "isTransparent": false,
+    "collider": [{"x":  -0.5, "y":  -0.5, "z":  -0.5}, {"x":  0.5, "y":  0.5, "z":  0.5}],
+    "atlasFaces": [],
+    "customModel": "cactus",
+    "customMaterial": null,
+    "footstepsSound": "footsteps_wood",
+    "blockSound": "block_wood"
+}

@@ -1,0 +1,12 @@
+{
+    "id": -108,
+    "name": "Water",
+    "showInInventory": true,
+    "isTransparent": true,
+    "collider": null,
+    "atlasFaces": [20, 20, 20, 20, 20, 20],
+    "customModel": null,
+    "customMaterial": null,
+    "footstepsSound": "footsteps_grass",
+    "blockSound": "footsteps_grass"
+}
