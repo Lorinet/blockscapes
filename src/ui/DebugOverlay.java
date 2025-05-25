@@ -34,7 +34,7 @@ public class DebugOverlay extends Widget {
             if(LevelManager.getChunksEntities().get(chunk) != null) {
                 entPerChunk = LevelManager.getChunksEntities().get(chunk).size();
             }
-            UIManager.drawTextInGrid(new Vector2i(0, 0), "Blockscapes [Version f0.0.4]", 0xFFFFFFFF, true);
+            UIManager.drawTextInGrid(new Vector2i(0, 0), "Blockscapes [Version f0.0.6]", 0xFFFFFFFF, true);
             UIManager.drawTextInGrid(new Vector2i(0, 1), "FPS: " + (int) StageManager.getFPS(), 0xFFFFFFFF, true);
             UIManager.drawTextInGrid(new Vector2i(0, 2), "Used Mem: " + String.format("%.2f", ((float) (totalMem - freeMem) / 1048576f)) + " MB", 0xFFFFFFFF, true);
             UIManager.drawTextInGrid(new Vector2i(0, 3), "Total Mem: " + String.format("%.2f", ((float) totalMem / 1048576f)) + " MB", 0xFFFFFFFF, true);

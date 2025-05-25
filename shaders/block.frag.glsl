@@ -72,7 +72,7 @@ void main() {
     vec4 diffuseTextureColor = texture(textures, vec3(texCoords, material.diffuseTextureID));
     vec4 emissive = (material.emissiveTextureID > -1 ? texture(textures, vec3(texCoords, material.emissiveTextureID)) : material.emissiveColor);
 
-    float solidThreshold = (fancyTransparency < 1) ? 0.4 : (1.0 - 0.001);
+    float solidThreshold = (fancyTransparency < 1) ? 0.3 : (1.0 - 0.001);
 
     if (renderPass == 0 && diffuseTextureColor.a < solidThreshold) {
         discard;

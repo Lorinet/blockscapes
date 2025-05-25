@@ -2,6 +2,7 @@ package game;
 
 import block.Block;
 import block.Blocks;
+import entities.Cupcake;
 import entities.RendermanEntity;
 import level.Chunk;
 import level.EntityStateData;
@@ -62,6 +63,8 @@ public class Entity {
             case ENTITY_RENDERMAN:
                 positionAdj.y += RendermanEntity.heightNormal * 2;
                 return new RendermanEntity(positionAdj, data.getRotation());
+            case ENTITY_CUPCAKE:
+                return new Cupcake(positionAdj, data.getRotation());
             default:
                 throw new RuntimeException("Invalid entity ID " + data.getType());
         }
@@ -136,7 +139,7 @@ public class Entity {
     }
 
     public void despawn() {
-        if(id != null) {
+        if (id != null) {
             StageManager.despawnEntity(id);
         } else {
             destroy();
@@ -220,7 +223,7 @@ public class Entity {
         position.add(new Vector3f((float) velo.x, (float) velo.y, (float) velo.z));
         if (getAffectedByGravity()) {
             Vector3d grav = new Vector3d(GRAVITY);
-            if(getInWater()) {
+            if (getInWater()) {
                 grav = new Vector3d(BUOYANCY);
             }
             grav.mul(deltaTime);
