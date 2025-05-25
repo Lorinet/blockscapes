@@ -27,7 +27,7 @@ public class MainMenu extends Widget {
                     UIManager.getWidget("settingsMenu").setVisible(true);
                 }), true, false),
                 Widget.centered(new Button(new Vector2i(Window.getWidth() / UIManager.SCALE / 2, (int) ((float) Window.getHeight() / UIManager.SCALE * 0.45f) + 70), new Vector2i(300, 30), "Quit game", (me) -> StageManager.exit()), true, false),
-                new Text(new Vector2i(0, Window.getHeight() / UIManager.SCALE - UIManager.getFont().getHeight() * UIManager.SCALE), "Linfinity Technologies 2024", 0xFFFFFFFF)
+                new Text(new Vector2i(0, Window.getHeight() / UIManager.SCALE - UIManager.getFont().getHeight() * UIManager.SCALE), "Linfinity Technologies 2025", 0xFFFFFFFF)
         });
         setVisible(false);
     }
