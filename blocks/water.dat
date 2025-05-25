@@ -6,7 +6,7 @@
     "collider": null,
     "atlasFaces": [20, 20, 20, 20, 20, 20],
     "customModel": null,
-    "customMaterial": null,
+    "customMaterial": "water.mtl",
     "footstepsSound": "footsteps_grass",
     "blockSound": "footsteps_grass"
 }
